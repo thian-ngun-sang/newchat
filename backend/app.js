@@ -4,6 +4,9 @@ const express = require("express");
 const socketIO = require('socket.io');
 const {instrument} = require("@socket.io/admin-ui");
 
+var web_server = require("ws").Server;
+var s = new web_server({ port: 5000 });
+
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 
@@ -31,118 +34,105 @@ app.use(express.static("media"));
 const server = http.createServer(app);
 
 app.use(internalError);
-const io = socketIO(server, {
-	// cors: {
-	// 	origin: "http://localhost:3000/",
-		// credentials: true
-	// }
-	cors: true
-});
 
 
-// make a namespace called "user"
-const userIo = io.of("/user");
-const chatIo = io.of("/chat");
+s.on('connection', function(ws){
+	// ws -> a particular client
+	// console.log(s.clients.values());
+	// console.log(s.clients.entries());
 
-function getUsernameFromToken(token){
-	return token;
-}
+	ws.on('message', async function(message){
+		parsedMessage = JSON.parse(message);
 
-// set up a middleware for userIo
-// socket => info about the socket itself
-// next => next middleware
-userIo.use((socket, next) => {
-	if(socket.handshake.auth.token){
-		socket.username = getUsernameFromToken(socket.handshake.auth.token);
-		next();
-	}else{
-		next(new Error("Token not provided"));
-	}
-});
+		switch(parsedMessage.type){
+			case "authenticate":
+				const { token } = parsedMessage.data;
+				try{
+						const decodedToken = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+						const { user_id } = decodedToken;
+						if(user_id !== undefined && user_id !== null){
+							user = await User.findOne({ _id: user_id}, "_id first_name last_name").maxTimeMS(30000);
+							ws.userId = user._id.toString();
+							ws.user = user;
+						}
+				}catch(error){
+						console.log(error);
+				}
+				break;
+			case "message":
+				if(ws.userId){
+					let { message, chatboxId, destinationUserId } = parsedMessage.data;
+					let newChatboxCreated = false;
 
-let chatRoom;
-chatIo.on("connection", socket => {
-	console.log(socket.user);
+					// if there is no chat box between the users
+					// 	make a new chatboxId
+					if(!chatboxId){
+						let chatBox = await Chatbox.findOne({
+								$and: [
+										{
+												"users": {
+														$in: [ws.userId]
+												}
+										},
+										{
+												"users": {
+														$in: [destinationUserId]
+												}
+										}
+								]
+						});
+						if(chatBox !== null && chatBox.length !== 0){
+								chatboxId = chatBox._id.toString();
+						}else{
+								newChatboxCreated = true;
+								const newChatbox = await Chatbox.create({users: [ws.userId, destinationUserId]});
+								chatboxId = newChatbox._id.toString();
+						}
+					}
 
-	socket.on("join-room", chatboxId => {
-		console.log(chatboxId);
-		// console.log(socket.token);
-		chatRoom = chatboxId;
-		socket.join(chatRoom);
+					let chatItemQuery = {
+						chatboxId: chatboxId,
+						user: ws.userId,
+						message: message,
+						viewers: [ws.userId]
+					};
 
-		// console.log("Chat room joined", chatRoom);
-	});
+					const newChatItem = await ChatItem.create(chatItemQuery);
+					newChatItem.user = ws.user;
 
-	socket.on("send-message", async (chatItem, flags) => {
-		console.log(chatItem);
-		const { _id: currentUserId } = socket.user;
-		const { message } = chatItem;
-		const { chatboxId, userId } = flags;
+					const chatbox = await Chatbox.findOne({_id: chatboxId}).populate("users", "_id");
+					if(chatbox !== null){
+						const { users: chatboxUsers } = chatbox;
+						// console.log(s.clients.entries());
 
-		if(message !== "" && chatboxId !== undefined){
-			let chatItemQuery = {
-				chatboxId: chatboxId,
-				user: currentUserId.toString(),
-				message: message
-			};
-			const newChatItem = await ChatItem.create(chatItemQuery);
+						s.clients.forEach(webSocketClient => {
+							chatboxUsers.forEach(chatboxUser => {
 
-			const { email, user_name, ...user } = socket.user._doc;
-	
-			if(chatRoom !== undefined){
-				console.log(chatRoom);
-				chatIo.to(chatRoom).emit("receive-message", { ...newChatItem._doc, user});
-			}
+								// console.log(chatboxUser._id.toString());
+								if(webSocketClient.userId === chatboxUser._id.toString()){
+									webSocketClient.send(JSON.stringify({
+										data: newChatItem,
+										flags: {
+											newChatboxCreated
+										}
+									}));
+								}
 
-			const chatbox = await Chatbox.findOne({_id: chatboxId}).populate("users", "_id");
-			if(chatbox !== null){
-				const { users: chatboxUsers } = chatbox;
-				
-				for(let i = 0; i < chatboxUsers.length; i++){
-					let currentChatboxUser = chatboxUsers[i]._id.toString();
-					if(currentChatboxUser !== currentUserId.toString){
-						chatIo.to(currentChatboxUser).emit("received-latest-message", newChatItem);
+							});
+						});
+
 					}
 				}
-			}
+				break;
 
-		}else if(userId !== undefined){
-			chatIo.to(userId.toString()).emit("receive-message", null);
 		}
 	})
 
-	socket.on("consume-latest-item", () => {
-		console.log("Comsumed latest item");
-	});
-
-	socket.on("leave-room", (room) => {
-		console.log("leave-room", room);
-		socket.leave(room);
-		// console.log("Chat socket has been removed", room);
-	});
+	ws.on('close', function(){
+		console.log("I lost a client");
+	})
 });
 
-chatIo.use(async(socket, next) => {
-	if(socket.handshake.auth.token){
-		const token = socket.handshake.auth.token;
-		const decodedToken = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-            const { user_id } = decodedToken;
-            let user = await User.findById(user_id, "first_name last_name user_name profile_image email gender")
-                // let { password, created_at, updated_at, ...user } = response._doc;)
-                .then(user => user)
-                .catch(error => console.log(error))
-		if(user === null || user === undefined){
-			return next(new Error("Invalid token"));
-		}
-		socket.user = user;
-		next();
-	}else{
-		next(new Error("Token not provided"));
-	}
-});
-
-
-instrument(io, {auth: false});
 
 app.use('/', authenticate);
 app.use('/api/auth', authRoute);

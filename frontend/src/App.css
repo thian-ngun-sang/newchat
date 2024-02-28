@@ -3,8 +3,24 @@
   grid-template-columns: 1fr 3fr 1fr;
 } */
 
+.app-logo{
+	font-weight: 500;
+	font-size: 1.2rem;
+	color: white;
+	background-color: blue;
+	padding-inline: 0.4rem;
+	padding-block: 0.05rem;
+	border-radius: 0.2rem;
+}
+
+.app-logo:hover{
+	color: white;
+	background-color: blue;
+}
+
 :root{
   --submit-hover: rgba(0, 0, 0, 0.231);
+	--app-margin: 20%;
 }
 
 .cms-7{
@@ -34,8 +50,8 @@
 /*****************************************************************************************************************/
 
 .app-layout{
-  margin-left: 20%;
-  margin-right: 20%;
+  margin-left: var(--app-margin);
+  margin-right: var(--app-margin);
 }
 
 .main-nav-layout{
@@ -49,8 +65,8 @@
 }
 
 .fixed-to-app-layout{
-  left: 20%;
-  right: 20%;
+  left: var(--app-margin);
+  right: var(--app-margin);
 }
 
 .app-content{
@@ -148,6 +164,8 @@
   top: 0px;
   background-color: white;
   z-index: 1;
+	left: 2%;
+	right: 2%;
 }
 
 .custom-nav-item{
@@ -194,6 +212,75 @@
   height: 2px;
 }
 /* Home end */
+
+/* Discover start */
+.discover--user-list{
+	/* display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	row-gap: 1rem; */
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.discover--user-list-item{
+	width: 14.7rem;
+	/* height: 14.5rem; */
+}
+
+.discover--user-list-item-img{
+	width: 100%;
+	height: 14.5rem;
+	border-radius: 0.8rem;
+}
+
+/* Discover end */
+
+/* Profile start */
+.profile--layout{
+	display: flex;
+}
+.profile--layout > :first-child{
+	flex-basis: 30%;
+	flex-grow: 100;
+}
+.profile--layout > :last-child {
+	flex-basis: 70%;
+	flex-grow: 1;
+}
+
+
+.profile--user-img{
+	width: 12rem;
+	height: 12rem;
+	border-radius: 0.5rem;
+}
+
+.profile--user-img-list{
+	width: 8rem;
+	height: 8rem;
+	border-radius: 0.5rem;
+}
+
+.profile--message-me{
+	background-color: #D70168;
+	outline: none;
+	border: medium;
+	border-radius: 0.8rem;
+	padding-inline: 0.5rem;
+	padding-block: 0.2rem;
+}
+
+.profile--banner{
+	height: 10rem;
+}
+
+.profile--body{
+	background-color: rgb(249, 250, 251);
+	/* height: 15rem; */
+}
+
+/* Profile start */
 
 /* Upshots start */
 .upshots-layout{
@@ -345,6 +432,10 @@
 	padding-block: 0rem;
 	border: none;
 	border-radius: 0.3rem;
+}
+
+.chat--new-message{
+  font-weight: 700;
 }
 
 /* Chat end */
@@ -519,16 +610,10 @@
 }
 
 @media(max-width: 960px){
-  .app-layout{
-    margin-left: 10%;
-    margin-right: 10%;
-  }
-
-  .fixed-to-app-layout{
-    left: 10%;
-    right: 10%;
-  }
-
+	:root{
+		--submit-hover: rgba(0, 0, 0, 0.231);
+		--app-margin: 10%;
+	}
 }
 
 @media(max-width: 860px){
@@ -562,27 +647,17 @@
 }
 
 @media(max-width: 760px){
-  .app-layout{
-    margin-left: 5%;
-    margin-right: 5%;
-  }
-
-  .fixed-to-app-layout{
-    left: 5%;
-    right: 5%;
-  }
+	:root{
+		--submit-hover: rgba(0, 0, 0, 0.231);
+		--app-margin: 5%;
+	}
 }
 
 @media(max-width: 660px){
-  .app-layout{
-    margin-left: 2%;
-    margin-right: 2%;
-  }
-
-  .fixed-to-app-layout{
-    left: 2%;
-    right: 2%;
-  }
+	:root{
+		--submit-hover: rgba(0, 0, 0, 0.231);
+		--app-margin: 2%;
+	}
 
 	/* chat */
 
@@ -637,6 +712,10 @@
 }
 
 @media(max-width: 460px){
+	:root{
+		--submit-hover: rgba(0, 0, 0, 0.231);
+		--app-margin: 1%;
+	}
   /* general */
   *{
     font-size: 13px;
@@ -646,17 +725,6 @@
   .custom-icon-lg{
     width: 20px;
     height: 20px;
-  }
-
-  /* home */
-  .app-layout{
-    margin-left: 1%;
-    margin-right: 1%;
-  }
-
-  .fixed-to-app-layout{
-    left: 1%;
-    right: 1%;
   }
 
   /* chat */

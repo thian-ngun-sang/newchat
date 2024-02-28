@@ -5,16 +5,19 @@ import { AppContext } from "../appContext";
 
 function ChatItem({users, chatboxId, lastMessage}){
     const context = useContext(AppContext);
+    const { baseUrl, validateImage, user: currentUser } = context;
+
+		// if the currentUser is included in lastMessage.viewers array
+		// -> if have read the lastMessage
+		const hadReadLastMessage = lastMessage.viewers.includes(currentUser._id.toString()) ?
+			true : false;
 
 		if(users.length === 0){
 			return;
 		}
     let user = users[0];
     
-    const { baseUrl, validateImage } = context;
-
 		let chatUserProfileUrl;
-		
 		if(validateImage(user.profile_image)){
 			chatUserProfileUrl = `${baseUrl}/user/profileImages/${user.profile_image}`;
 		}else{
@@ -35,10 +38,11 @@ function ChatItem({users, chatboxId, lastMessage}){
 							<Link to={ "/chat/" + chatboxId } className="text-decoration-none text-dark">
 									<div className="ms-2">
 											<small className="d-block">{ user.first_name } { user.last_name }</small>
-											<small className="d-block">{ lastMessage.message }</small>
+											<small className={ hadReadLastMessage ? 'd-block' : 'd-block chat--new-message'}>
+												{ lastMessage.message }
+											</small>
 									</div>
 							</Link>
-							<div className="ms-2">{ user._id }</div>
             </div>
         </li>     
     );

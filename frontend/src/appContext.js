@@ -6,8 +6,9 @@ function AppContextProvider(props){
     const auth_data = {
         token: "",
         user: {},
-        chatSocket: {},
-        baseUrl: process.env.REACT_APP_BACKEND_URL
+        webSocket: null,
+        baseUrl: process.env.REACT_APP_BACKEND_URL,
+				webSocketUrl: process.env.REACT_APP_WS_URL
     }
     const [authState, setAuthState] = useState(auth_data);
 
@@ -30,18 +31,18 @@ function AppContextProvider(props){
         });
     }
 
-    function logout(){
-        localStorage.removeItem('token');
-        setAuthState(auth_data);
-    }
-
-    function setChatSocket(chatSocket){
+    function setWebSocket(webSocket){
         setAuthState(oldState => {
             return {
                 ...oldState,
-                chatSocket: chatSocket
+                webSocket: webSocket
             };
         });
+    }
+
+    function logout(){
+        localStorage.removeItem('token');
+        setAuthState(auth_data);
     }
 
     function validateImage(filename){
@@ -67,7 +68,7 @@ function AppContextProvider(props){
 		}
 
     return (
-        <AppContext.Provider value={{...authState, storeToken, setUser, logout, setChatSocket, validateImage, generateProfileImageUri}}>
+        <AppContext.Provider value={{...authState, storeToken, setUser, setWebSocket, logout, validateImage, generateProfileImageUri}}>
             {props.children}
         </AppContext.Provider>
     )

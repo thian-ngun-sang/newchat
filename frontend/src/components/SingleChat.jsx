@@ -17,11 +17,10 @@ import AutoSelectInput from "./AutoSelectInput";
 
 function SingleChat(){
     const context = useContext(AppContext);
-    const { user, chatSocket, baseUrl, generateProfileImageUri } = context;
+    const { user, webSocket, baseUrl, generateProfileImageUri } = context;
 
     const [message, setMessage] = useState("");
     const [chatComponentsState, setChatComponentsState] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [peerUserList, setPeerUserList] = useState([]);
     const [chats, setChats] = useState([]);
 
@@ -38,14 +37,26 @@ function SingleChat(){
 
 		const location = useLocation();
 
+		
     function mapChatContents(chatContents, peerUserList){
-
         if(chatContents.length !== 0){
             let initBox = chatContents[0];
             let initUserId = initBox.user._id;
 
             let initBoxDate = new Date(initBox.created_at);
             for(let i = 0; i < chatContents.length; i++){
+
+								// chatContents[i].viewers
+								// -> 	a list of user id's who viewed the the current chat item
+								// if the current user is NOT included in viewers <Array>
+								// ->		add the current user
+								if(!chatContents[i].viewers.includes(user._id.toString())){
+									// console.log("current user is not included");
+								  axios.post(`/api/v1/chat/add-chat-item-viewer/${chatContents[i]._id.toString()}`)
+										.then(res => { console.log(res.data); })
+										.catch(err => { console.log(err.response); });
+								}
+
                 const currentboxDate = new Date(chatContents[i].created_at);
 
                 // getTime() returns time in miliseconds, so 1000 * 60 === time in minutes
@@ -77,7 +88,6 @@ function SingleChat(){
             
             const chatComponents = chatContents.map((chatContent, index) => {
 								// console.log(chatContent?.userId?._id);
-
                 const chatContentUserId = chatContent.user._id;
 
                 return <ChatContent peerUserList={ peerUserList } chatContent={chatContent} key={index}/>
@@ -99,28 +109,33 @@ function SingleChat(){
 
     function sendMessage(){
         if(chatboxId === "new"){
-            axios.post(`/api/v1/send-message/${chatboxId}?userid=${userId}`, { message: message })
-                .then(res => {
-                    const { chatboxId: newChatboxId } = res.data;
+            // axios.post(`/api/v1/send-message/${chatboxId}?userid=${userId}`, { message: message })
+            //     .then(res => {
+            //         const { chatboxId: newChatboxId } = res.data;
 
-                    chatSocket.emit("send-message", {
-                    },{
-                        userId: userId
-                    });
+            //         navigate(`/chat/${newChatboxId}`);
+            //     })
+            //     .catch(err => console.log(err));
 
-                    navigate(`/chat/${newChatboxId}`);
-                })
-                .catch(err => console.log(err));
+						webSocket.send(JSON.stringify({
+							type: "message",
+							data: {
+								chatboxId: null,
+								destinationUserId: userId,
+								message: message
+							}
+						}));
 
             setMessage("");
         }else{
             // const result = await axios.post(`/api/v1/send-message/${chatboxId}?userid=${userId}`, { message: message });
-
-            chatSocket.emit("send-message", {
-                message: message
-            },{
-                chatboxId: chatboxId,
-            });
+						webSocket.send(JSON.stringify({
+							type: "message",
+							data: {
+								chatboxId: chatboxId,
+								message: message
+							}
+						}));
 
             setMessage("");
         }
@@ -132,65 +147,29 @@ function SingleChat(){
         }
     }
 
-    function hanldeScroll(event){
-        if(!loading){
-            // console.log(event.target.scrollHeight - event.target.scrollTop);
-        }
-    }
-
 		// fetch chat members and 'mapChatContents' function only works when 'peerUserList' state is ready 
 		useEffect(() => {
-					if(chatboxId !== "new"){
-							axios.get(`/api/v1/chat/members/${chatboxId}`)
-									.then(res => {
-											const { users } = res.data;
-											if(users !== null && users !== undefined){
-													setPeerUserList(users);
-											}
-									})
-									.catch(err => console.log(err));
-					}else if(userId !== null){
-            axios.get(`/api/v1/chat/users/${userId}`)
-                .then(res => {
-                    const { user } = res.data;
-                    if(user !== null && user !== undefined){
-                        setPeerUserList([user]);
-                    }
-                })
-                .catch(err => console.log(err));
+			if(chatboxId !== "new"){
+				axios.get(`/api/v1/chat/members/${chatboxId}`)
+					.then(res => {
+							const { users } = res.data;
+							if(users !== null && users !== undefined){
+									setPeerUserList(users);
+							}
+					})
+					.catch(err => console.log(err));
+			}else if(userId !== null){
+				axios.get(`/api/v1/chat/users/${userId}`)
+					.then(res => {
+						const { user } = res.data;
+						if(user !== null && user !== undefined){
+							setPeerUserList([user]);
+						}
+					})
+					.catch(err => console.log(err));
         }
 		}, []);
 
-    // handle socket.io
-    useEffect(() => {
-        // chatSocket.on("connect", () => {
-
-            if(chatboxId !== "new"){
-                chatSocket.emit("join-room", chatboxId);
-            }
-
-            chatSocket.on("receive-message", chatItem => {
-                
-								console.log(chatItem);
-                chatRef.current = [...chatRef.current, chatItem];
-                setChats(chatRef.current);
-
-								if(chatItem.user._id !== user._id){
-									chatSocket.emit("consume-latest-item");
-								}
-            });
-
-            setLoading(false);
-        // });
-               
-        return () => {
-            console.log("Disconnecting socket room");
-
-            if(chatboxId !== "new"){
-                chatSocket.emit("leave-room", chatboxId);
-            }
-        }
-    }, [chatSocket]);
 
 		// fetch chat contents
 		useEffect(() => {
@@ -199,7 +178,8 @@ function SingleChat(){
 						.then(res => {
 								const { chatContents } = res.data;
 								chatRef.current = chatContents;
-								mapChatContents(chatContents, peerUserList);
+								setChats(chatRef.current);
+								// mapChatContents(chatContents, peerUserList);
 						})
 						.catch(err => console.log(err));
 				}
@@ -213,9 +193,67 @@ function SingleChat(){
     // update ui when new chat contents are created
     useEffect(() => {
         if(chats !== null){
+						// console.log(chats);
+						// console.log(chats);
             mapChatContents(chats, peerUserList);
         }
     }, [chats]);
+
+		useEffect(() => {
+			if(webSocket){
+				webSocket.onmessage = async (data) => {
+					const parsedMessage = JSON.parse(data.data);
+					const { viewers, _id } = parsedMessage.data;
+
+					// if new chatbox is just created
+					if(parsedMessage?.flags?.newChatboxCreated){
+						const { chatboxId: newChatboxId } = parsedMessage.data;
+						navigate(`/chat/${newChatboxId}`);
+					}
+
+					// if the current user is NOT included in the viewers array
+					// if(!viewers.some(curr => { return curr.toString() === user._id.toString() })){
+					if(!viewers.includes(user._id.toString())){
+						try{
+							const result = await axios.post(`/api/v1/chat/add-chat-item-viewer/${_id}`)
+							console.log(result);
+
+							const { chatItem } = result.data;
+							if(chatItem){
+								chatRef.current = [...chatRef.current, chatItem];
+								setChats(chatRef.current);
+							}
+						}catch(error){
+							console.log(error);
+						}
+					}else{
+						chatRef.current = [...chatRef.current, parsedMessage.data];
+						setChats(chatRef.current);
+					}
+
+
+
+					// if(!viewers.includes(user._id.toString())){
+					// 	try{
+					// 		const result = await axios.post(`/api/v1/chat/add-chat-item-viewer/${_id}`)
+					// 		// console.log(result);
+					// 		const { chatItem } = result.data;
+					// 		// console.log(chatItem);
+					// 		if(chatItem){
+					// 			chatRef.current = [...chatRef.current, chatItem];
+					// 			setChats(chatRef.current);
+					// 		}
+					// 	}catch(error){
+					// 		console.log(error);
+					// 	}
+					// }else{
+					// 	chatRef.current = [...chatRef.current, parsedMessage.data];
+					// 	setChats(chatRef.current);
+					// }
+
+				}
+			}
+		}, [webSocket]);
 
 		function generateChatImageUrl(userList){
 			if(userList === null || userList === undefined){
@@ -247,7 +285,7 @@ function SingleChat(){
                     </div>
                 </div>
             </div>
-            <div className="chat-messages-ctn" ref={chatMessagesRef} onScroll={hanldeScroll}>
+            <div className="chat-messages-ctn" ref={chatMessagesRef}>
                     { chatComponentsState }
                 {/* <div className="text-end">
                     <span className="bg-primary text-item">

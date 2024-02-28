@@ -2,20 +2,18 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../appContext";
 import axios from "axios";
-import io from 'socket.io-client';
 
 import Loading from "./Loading";
 
 function Authenticate(){
     const [isLoading, setIsLoading] = useState(true);
     const location = useLocation();
-
     const auth_data = useContext(AppContext);
-    const { setUser, token: globalToken, user: globalUser, setChatSocket, chatSocket: globalChatSocket, validateImage } = auth_data;
+    const { setUser, setWebSocket, storeToken, webSocket, webSocketUrl, token: globalToken,
+			user: globalUser, validateImage } = auth_data;
     let token = localStorage.getItem('token');
 
     useEffect(() => {
-        // console.log("Authenticate rerun");
         if(token !== "null" && token !== null && token !== "" && token !== undefined){
             axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
             axios.get('/api/auth/validate-token')
@@ -35,8 +33,9 @@ function Authenticate(){
                         user.cover_image = "defaults/cover_image.jpg";
                     }
                     
+										storeToken(token);
                     setUser(user); // for context api
-                    // Loading is set to false only when chatSocket is ready
+										setIsLoading(false);
                 })
                 .catch(error => {
                     console.log(error.response);
@@ -47,35 +46,31 @@ function Authenticate(){
         }
     }, [globalToken]);
 
-    useEffect(() => {
-        if(Object.keys(globalUser).length !== 0){
-            const chatSocket = io(process.env.REACT_APP_BACKEND_URL, {auth: {
-                token: token
-            }});
+		useEffect(() => {
+			if(!webSocket && globalToken){
+				try{
+					let ws = new WebSocket("ws://172.18.67.12:5000");
 
-            chatSocket.on("connect", () => {
-								chatSocket.emit("join-room", globalUser._id.toString());
-								console.log(globalUser._id.toString());
+					ws.onopen = () => {
+						ws.send(JSON.stringify({
+							type: "authenticate",
+							data: {
+								token: globalToken
+							}
+						}))
+						console.log("web socket connected");
 
-                setChatSocket(chatSocket);
-            });
-
-            return () => {
-                chatSocket.disconnect();
-            }
-        }
-    }, [globalUser, location.pathname]);
-
-    useEffect(() => {
-				console.log(globalChatSocket);
-
-        if(Object.keys(globalChatSocket).length !== 0 && Object.keys(globalUser).length !== 0){
-            token = localStorage.getItem('token');
-            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-            setIsLoading(false);
-        }
-    }, [globalChatSocket]);
+						// ws.onmessage = (data) => {
+						// 	const parsedMessage = JSON.parse(data.data);
+						// 	console.log(parsedMessage);
+						// }
+					}
+					setWebSocket(ws);
+				}catch(e){
+					console.log(e);
+				}
+			}
+		}, [webSocket, globalToken]);
 
     if(isLoading){
         return <Loading/>;

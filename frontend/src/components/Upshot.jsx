@@ -1,5 +1,5 @@
 import likeIcon from "../assets/icons/svgs/like.svg";
-import loveIcon from "../assets/icons/svgs/love.svg";
+import loveIcon from "../assets/icons/svgs/love__solid.svg";
 import sadIcon from "../assets/icons/svgs/sad.svg";
 import angryIcon from "../assets/icons/svgs/angry.svg";
 

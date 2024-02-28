@@ -12,6 +12,9 @@ import Account from './views/Account';
 import EditProfile from './views/EditProfile';
 import ChangePassword from './views/ChangePassword';
 import NotFound from './views/NotFound';
+import Discover from './views/Discover';
+import Profile from './views/Profile';
+
 
 import Authenticate from "./components/Authenticate";
 import Authorize from './components/Authorize';
@@ -43,6 +46,8 @@ function App() {
               <Route path="/account/change-password" element={<ChangePassword/>}/>
               <Route path="/" element={<AppLayout/>}>
                 <Route index path="/" element={<Home/>}/>
+                <Route path="/discover" element={<Discover/>}/>
+                <Route path="/profile/:id" element={<Profile/>}/>
                 <Route path="/account" element={<Account/>}/>
                 <Route path="/users" element={<Users/>}/>
                 <Route path="/user/:id" element={<PeerAccount/>}/>

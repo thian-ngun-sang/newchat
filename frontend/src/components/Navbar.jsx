@@ -8,27 +8,8 @@ import { AppContext } from "../appContext";
 
 function Navbar(){
     const context = useContext(AppContext);
+    const { webSocket } = context;
     const [newChatContents, setNewChatContents] = useState([]);
-
-    useEffect(() => {
-        const { user, chatSocket } = context;
-
-				chatSocket.on("received-latest-message", (chatItem) => {
-						// console.log(chatItem);
-
-						// new chat(message) sender id
-						const chatUserId = chatItem.user.toString();
-						// newChatContents => list of user ids who send latest chat messages or contents
-						if(!newChatContents.includes(chatUserId) && chatUserId !== user._id.toString()){
-								setNewChatContents(prev => {
-										let newChatContentsTemp = prev;
-										newChatContentsTemp.push(chatUserId);
-										return newChatContentsTemp;
-								})
-						}
-				});
-
-    }, []);
 
     return (
         <div className="app-nav fixed-to-app-layout">

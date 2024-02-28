@@ -9,8 +9,8 @@ import { AppContext } from "../appContext";
 
 function Chat(){
     const context = useContext(AppContext);
-		const { chatSocket } = context;
-		const chatboxesRef = useRef(null);
+    const { user, webSocket } = context;
+		const chatboxesRef = useRef([]);
 
     const initialUsers = {
 				chatboxes: [],
@@ -43,6 +43,7 @@ function Chat(){
             .then(res => {
                 const { chatBoxes } = res.data;
 								chatboxesRef.current = chatBoxes;
+								
 								dispatchUsersSate({ type: "chatboxes", value: chatBoxes });
                 return res;
             })
@@ -53,34 +54,45 @@ function Chat(){
         getChatboxes();
     }, []);
 
-    useEffect(() => {
+		useEffect(() => {
+			if(webSocket){
+				webSocket.onmessage = data => {
+					const parsedMessage = JSON.parse(data.data);
+					const { chatboxId, ..._chatItem } = parsedMessage.data;
 
-				chatSocket.on("received-latest-message", (chatItem) => {
-					const modifiedChatboxes = chatboxesRef.current.map(_chatbox => {
+					// if new chatbox was created
+					if(parsedMessage.flags.newChatboxCreated){
+						getChatboxes();
+					}else{
+						const modifiedChatboxes = chatboxesRef.current.map(_chatbox => {
+							// check out chatboxes from the current user,
+							// if the current chatbox is equal to the chatbox the message is received on,
+							// change the lastMessage
+							if(_chatbox._id.toString() === parsedMessage.data.chatboxId.toString()){
+								// console.log(parsedMessage.data);
+								return {
+									..._chatbox,
+									lastMessage: _chatItem
+								};
+							}
 
-						if(_chatbox._id.toString() === chatItem.chatboxId.toString()){
-							const { chatboxId, ..._chatItem } = chatItem;
+							return _chatbox;
+						})
 
-							return {
-								..._chatbox,
-								lastMessage: _chatItem
-							};
-						}
+						chatboxesRef.current = modifiedChatboxes;
+						dispatchUsersSate({ type: "chatboxes", value: modifiedChatboxes });
+					}
 
-						return _chatbox;
-					})
+				}
+			}
 
-					chatboxesRef.current = modifiedChatboxes;
-					dispatchUsersSate({ type: "chatboxes", value: modifiedChatboxes });
-				});
-    }, [chatSocket]);
+		}, [webSocket]);
 
 		useEffect(() => {
 			const chatboxComponents = usersState.chatboxes.map((chatbox, index) => {
-					console.log(chatbox);
-
 					if(chatbox.lastMessage !== null){
-							return <ChatItem users={chatbox.users} chatboxId={chatbox._id} lastMessage={chatbox.lastMessage} key={index}/>;
+							return <ChatItem users={chatbox.users} chatboxId={chatbox._id}
+									lastMessage={chatbox.lastMessage} key={index}/>;
 					}else{
 							return <ChatItem users={chatbox.users} chatboxId={chatbox._id} lastMessage={""} key={index}/>;
 					}
@@ -88,8 +100,6 @@ function Chat(){
 			});
 			dispatchUsersSate({ type: "chatboxComponents", value: chatboxComponents });
 		}, [usersState.chatboxes]);
-
-		// console.log(usersState);
 
     return (
         <div>

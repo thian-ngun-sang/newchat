@@ -98,9 +98,11 @@ const browseChatBox = async (req, res) => {
 
     let newChatboxes = [];
     for(let i = 0; i < chatBoxes.length; i++){
+				console.log(chatBoxes[i]);
+
         const lastMessage= await ChatItem.findOne({
             chatboxId: chatBoxes[i]._id.toString()
-        }, "user message"
+        }, "user message viewers"
         )
         .sort({created_at: -1});
 
@@ -176,4 +178,28 @@ const sendMessage = async (req, res) => {
     return res.status(200).json({"msg": "Success", "chatItem": chatItem, currentUserId});
 }
 
-module.exports = { getChatboxId, browseUsers, browseChatBox, getUserInfo, getChatMembers, browseChatContents, sendMessage };
+	// add user to chat item viewers (list in db)
+	const addChatItemViewer = async (req, res) => {
+		// id -> chat item id
+		const { id } = req.params;
+
+		let chatItem;
+		try{
+			chatItem = await ChatItem.findById(id, "_id message").populate("viewers", "_id").populate("user", "_id");
+
+			// if current user is NOT included in viewers<Array> of "chatItem"
+			if(!chatItem.viewers.some(curr => curr._id.toString() === req.user._id.toString())){
+				// console.log("current is NOT included in viewers array");
+				chatItem.viewers.push(req.user._id.toString());
+				chatItem.save();
+			}
+		}catch(error){
+			console.log(error);
+			return res.status(400).json({msg: error});
+		}
+
+		chatItem.viewers = chatItem.viewers.map(viewer => viewer._id.toString());
+    return res.status(200).json({msg: "Success", chatItem: chatItem});
+	}
+
+module.exports = { getChatboxId, browseUsers, browseChatBox, getUserInfo, getChatMembers, browseChatContents, sendMessage, addChatItemViewer };

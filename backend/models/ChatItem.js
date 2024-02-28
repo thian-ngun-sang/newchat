@@ -13,7 +13,7 @@ const ChatItem = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-		consumedUsers: {
+		viewers: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: "User"
 		},
