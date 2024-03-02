@@ -102,17 +102,15 @@ function Chat(){
 		}, [usersState.chatboxes]);
 
     return (
-        <div>
+        <div className="chat--view">
             <div className="chat-navbar">
-                <div className="d-flex">
-										{/* <img className="custom-icon-xl" src={moreAlignIcon} alt={moreAlignIcon}/>
-                    <h5 className="ms-3">Chats</h5> */ }
+                <div className="d-flex pt-3 ps-3">
 										<h5>Chats</h5>
                 </div>
                 <div>
-                    <Link to="/chat-users" className="text-decoration-none">
+								{/* <Link to="/chat-users" className="text-decoration-none">
                         <h5 className="ms-3 cursor-pointer">Users</h5>
-                    </Link>
+                    </Link> */}
                 </div>
             </div>
             {/* <div>

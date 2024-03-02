@@ -215,23 +215,17 @@
 
 /* Discover start */
 .discover--user-list{
-	/* display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	row-gap: 1rem; */
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-}
-
-.discover--user-list-item{
-	width: 14.7rem;
-	/* height: 14.5rem; */
+	display: grid;
+	gap: 1.3rem;
+	/* grid-template-columns: 1fr 1fr 1fr; */
+	grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
 }
 
 .discover--user-list-item-img{
 	width: 100%;
 	height: 14.5rem;
 	border-radius: 0.8rem;
+	object-fit: cover;
 }
 
 /* Discover end */
@@ -290,6 +284,12 @@
 /* Upshots end */
 
 /* Chat start */
+.chat--view{
+	background-color: rgb(249, 250, 251);
+	min-height: 100vh;
+	border-radius: 0.3rem;
+}
+
 .chat-app{
   height: calc(100vh - 4rem);
   overflow-y: hidden;

@@ -1,4 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useContext } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import axios from "axios";
+
+import { AppContext } from "../appContext";
 
 import backIcon from "../assets/icons/svgs/back.svg";
 import loveIcon from "../assets/icons/svgs/love__solid.svg";
@@ -15,10 +20,28 @@ import img1 from "../assets/images/posts/background05.jpeg";
 
 function Profile(){
 	const navigate = useNavigate();
+	const routeParams = useParams();
+	const context = useContext(AppContext);
+	const userId = routeParams.id;
+
+	const { calculateAge } = context;
+
+	const [profileUser, setProfileUser] = useState(null);
 
 	function stepBack(){
 			navigate(-1);
 	}
+
+	useEffect(() => {
+		axios.get(`/api/v1/user/users/${userId}`)
+			.then(res => {
+				const { user } = res.data;
+				setProfileUser(user);
+			})
+			.catch(err => {
+				console.log(err.response);
+			})
+	}, []);
 
 	return <div>
 			<div>
@@ -31,8 +54,14 @@ function Profile(){
 					</div>
 					<div className="ms-4 w-100">
 						<div>
-							<span className="d-block">Dannimai</span>
-							<span className="d-block">23 • London, Greater London</span>
+							<span className="d-block">{profileUser && profileUser.first_name + profileUser.last_name}</span>
+							<span className="d-block">
+								{profileUser && profileUser.dateOfBirth
+																? calculateAge(profileUser.dateOfBirth)
+																: "23" } • { profileUser && profileUser.currentLocation
+																					? `${profileUser.currentLocation.split(",")[0]},
+																						${profileUser.currentLocation.split(",")[2]}`
+																					: "London, Greater London"}</span>
 						</div>
 						<div className="mt-3 d-flex justify-content-between">
 							<div>

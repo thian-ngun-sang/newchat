@@ -14,13 +14,16 @@ function Navbar(){
     return (
         <div className="app-nav fixed-to-app-layout">
             <div className="my-3 main-nav-layout">
+								<div className="d-flex">
+									<NavLink className="text-decoration-none app-logo" to="/">mikchay</NavLink>
+									<div className="d-flex home-search-ctn ms-1">
+											<label htmlFor="home-search" className="bg-success">
+													<img className="custom-icon-lg chat-search-icon" src={searchIcon} alt="search-icon"/>
+											</label>
+											<input type="search" name="q" placeholder="Search" id="home-search" className="w-100 home-search"/>
+									</div>
+								</div>
                 <NavLink className="custom-nav-item" activeclassname="active" to="/">Home</NavLink>
-                <div className="d-flex home-search-ctn">
-                    <label htmlFor="home-search" className="bg-success">
-                        <img className="custom-icon-lg chat-search-icon" src={searchIcon} alt="search-icon"/>
-                    </label>
-                    <input type="search" name="q" placeholder="Search" id="home-search" className="w-100 home-search"/>
-                </div>
                 <NavLink className="custom-nav-item" activeclassname="active" to="/chat">
                     Chat
                     {/* ({newChatContents.length}) */}

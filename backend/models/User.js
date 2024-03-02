@@ -38,10 +38,15 @@ const User = mongoose.Schema({
         type: String,
         maxlength: [20, "Gender cannot be longer than 20 characters"],
     },
-    native: {
+		dateOfBirth: {
+				type: String
+		},
+    placeOfBirth: {
         type: String
     },
-    address: {
+    currentLocation: {
+        // type: mongoose.Schema.Types.ObjectId,
+        // ref: "Location"
         type: String
     },
     created_at: {

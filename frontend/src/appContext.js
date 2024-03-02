@@ -67,8 +67,52 @@ function AppContextProvider(props){
 				}
 		}
 
+		function dashSeparatedToCamel(dashed){
+			const dashedInArray = dashed.split("-");
+			let res = dashedInArray[0];
+
+			// if dashed was something like "place-of-birth"
+			if(dashedInArray.length > 1){
+				// start from the second element
+				for(let i = 1; i < dashedInArray.length; i++){
+					// cast the first character of the current element(string) to uppercase + the rest of the string
+					res += dashedInArray[i][0].toUpperCase() + dashedInArray[i].slice(1);
+				}
+			}
+
+			return res;
+		}
+
+		// location should always be in "city, state, country" format
+		function validateLocation(recLocation){
+			let locationInArray = recLocation.split(",");
+			if(locationInArray && locationInArray.length !== 3){
+				console.log("Invalid location format");
+				return false;
+			}
+
+			return true;
+		}
+
+		// calculate age based on given date
+		function calculateAge(dateOfBirth){
+			const dateOfBirthObj = new Date(dateOfBirth);
+
+			var month_diff = Date.now() - dateOfBirthObj;
+
+			//	convert the calculated difference in date format  
+			var age_dt = new Date(month_diff);
+			//	extract year from date      
+			var year = age_dt.getUTCFullYear();  
+			//	now calculate the age of the user  
+			var age = Math.abs(year - 1970);
+
+			return age;
+		}
+
     return (
-        <AppContext.Provider value={{...authState, storeToken, setUser, setWebSocket, logout, validateImage, generateProfileImageUri}}>
+        <AppContext.Provider value={{...authState, storeToken, setUser, setWebSocket, logout, validateImage,
+						generateProfileImageUri, dashSeparatedToCamel, validateLocation, calculateAge }}>
             {props.children}
         </AppContext.Provider>
     )

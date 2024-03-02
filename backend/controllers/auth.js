@@ -32,44 +32,84 @@ function comparePasswords(hashedPassword, plaintextPassword){
 }
 
 const register = async(req, res) => {
-	let {first_name, last_name, user_name, email, password, password2} = req.body;
+	let { first_name, last_name, user_name, email, password, password2, placeOfBirth, currentLocation,
+		dateOfBirth } = req.body;
+
 	if(!first_name){
-        return res.status(400).json({msg: "First name cannot be null"});
-    }
-    if(!email){
-        return res.status(400).json({msg: "Email cannot be null"});
-    }
-    if(!password){
-        res.status(400).json({msg: "Password cannot be null"});
-    }
-    if(password !== password2){
-        return res.status(400).json({msg: "Passwords do not match"});
-    }
+			return res.status(400).json({msg: "First name cannot be null"});
+	}
+	if(!email){
+			return res.status(400).json({msg: "Email cannot be null"});
+	}
+	if(!password){
+			res.status(400).json({msg: "Password cannot be null"});
+	}
+	if(password !== password2){
+			return res.status(400).json({msg: "Passwords do not match"});
+	}
 
 	if(!user_name && last_name){ // use first_name and last_name to make user_name
-        // split where blank space appears(returns an array) and join with empty string
-        user_name = first_name.split(' ').join('') + last_name.split(' ').join('');
-    }else if(!user_name){   // use first_name to make user_name
-        user_name = first_name.split(' ').join('');
-    }
-    if(!last_name){
-        last_name = null;
-    }
+		// split where blank space appears(returns an array) and join with empty string
+		user_name = first_name.split(' ').join('') + last_name.split(' ').join('');
+	}else if(!user_name){   // use first_name to make user_name
+			user_name = first_name.split(' ').join('');
+	}
+	if(!last_name){
+			last_name = null;
+	}
+
+	let trimedPlaceOfBirth = [];
+	if(placeOfBirth){
+		let placeOfBirthInArray = placeOfBirth.split(",");
+		if(placeOfBirthInArray.length !== 3){
+			return res.status(400).json({msg: "Invalid address format"});
+		}
+
+		placeOfBirthInArray.forEach(item => {
+			trimedPlaceOfBirth.push(item.trim());
+		});
+	}
+	// console.log(trimedPlaceOfBirth);
+
+	let trimedCurrentLocation = [];
+	if(currentLocation){
+		let currentLocationInArray = currentLocation.split(",");
+		if(currentLocationInArray.length !== 3){
+			return res.status(400).json({msg: "Invalid address format"});
+		}
+
+		currentLocationInArray.forEach(item => {
+			trimedCurrentLocation.push(item.trim());
+		});
+	}
+	// console.log(trimedCurrentLocation);
+
+	// check if the date is in [yyyy-mm-dd] format
+	if(dateOfBirth){
+		if(!/[0-9]{4}-[0-9]{2}-[0-9]{2}/.exec(dateOfBirth)){
+			// console.log("Invalid date");
+			return res.status(400).json({msg: "Invalid date format"});
+		}
+	}
 
 	const db_user = await User.findOne({email: email});
-    if(db_user){
-        return res.status(400).json({msg: "User with that email already exists"});
-    }
+	if(db_user){
+		return res.status(400).json({msg: "User with that email already exists"});
+	}
 
 	const hashedPassword = await hashPassword(password)
-        .then(hashedPassword => {
-            return hashedPassword;
-        })
-        .catch(error => {
-            console.error(error);
-        });
+		.then(hashedPassword => {
+				return hashedPassword;
+		})
+		.catch(error => {
+				console.error(error);
+		});
 	
-	const user = await User.create({ first_name, last_name, user_name, email, password: hashedPassword });
+	const user = await User.create({ first_name, last_name, user_name, email,
+			password: hashedPassword, dateOfBirth, placeOfBirth: trimedPlaceOfBirth.toString(),
+			currentLocation: trimedCurrentLocation.toString()
+	});
+
 	let { _id, user_name: db_user_name } = user;
 	const token = jwt.sign({user_id: _id, db_user_name}, process.env.JWT_PRIVATE_KEY, {expiresIn:"7d"});
 

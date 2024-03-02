@@ -12,7 +12,7 @@ import axios from "axios";
 function EditProfile(){
     const context =  useContext(AppContext);
     const navigate = useNavigate();
-    const { user, setUser } = context;
+    const { user, setUser, dashSeparatedToCamel, validateLocation } = context;
     
     const [ userData, setUserData ] = useState({
             first_name: user.first_name || "",
@@ -21,17 +21,18 @@ function EditProfile(){
             email: user.email || "",
             phone: user.phone || "",
             gender: user.gender || "",
-            address: user.address || ""
+            currentLocation: user.currentLocation || ""
         });
 		const [httpErrorMessage, setHttpErrorMessage] = useState("");
 		const [isSubmitted, setIsSubmitted] = useState(false);
         
     function handleOnChange(event){
         const target = event.target;
+				let name = dashSeparatedToCamel(event.target.name);
         setUserData((prevState) => {
             return {
                 ...prevState,
-                [target.name]: target.value
+                [name]: target.value
             };
         })
     }
@@ -48,6 +49,13 @@ function EditProfile(){
 					return;
 				}
 
+				// if the location format is not valid
+				if(!validateLocation(userData.currentLocation)){
+					console.log("Invalid location format");
+					return;
+				}
+
+				// console.log(userData);
         axios.post("/api/v1/user/update/account", userData)
             .then(res => {
 								setIsSubmitted(true);
@@ -117,7 +125,7 @@ function EditProfile(){
                 </div>
                 <div className="custom-input-container">
                     <label className="custom-label">Address</label>
-                    <input className="custom-input" name="address" value={userData.address}
+                    <input className="custom-input" name="current-location" value={userData.currentLocation}
                         onChange={handleOnChange} type="text" placeholder="Country, State, City"/>
                 </div>
                 <div className="text-end c-mt-3">
