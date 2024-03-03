@@ -1,8 +1,31 @@
 require("dotenv").config()
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const User = require("../models/User");
+const VerificationCode = require("../models/VerificationCode");
+
+
+// Function to generate a 6-digit verification code
+const generateVerificationCode = () => {
+  const code = crypto.randomBytes(3).readUIntLE(0, 3) % 1000000; // 3 bytes = 24 bits
+  return code.toString().padStart(6, '0'); // Ensure it is a 6-digit code
+};
+
+const getMinutesDifference = (date1, date2) => {
+  const timestamp1 = date1.getTime();
+  const timestamp2 = date2.getTime();
+  
+  // Calculate the difference in milliseconds
+  const differenceInMilliseconds = Math.abs(timestamp2 - timestamp1);
+  
+  // Convert the difference to minutes
+  const differenceInMinutes = differenceInMilliseconds / (1000 * 60);
+
+  return differenceInMinutes;
+};
 
 function hashPassword(plaintextPassword) {
     const saltRounds = 10;
@@ -224,4 +247,103 @@ const checkRegistrationFormTwo = async (req, res) => {
 	return res.status(200).json({ msg: "Success" });
 }
 
-module.exports = { checkRegistrationFormOne, checkRegistrationFormTwo, register, login, validateToken, comparePasswords, hashPassword };
+
+const transporter = nodemailer.createTransport({
+		service: 'gmail',
+	  host: 'smtp.gmail.com',
+		port: 465,
+		secure: true,
+		auth: {
+				user: process.env.GMAIL_USERNAME,
+				pass: process.env.GMAIL_PASSWORD
+		},
+});
+
+const sendVerificationEmail = async (req, res) => {
+	const { email } = req.body;
+
+	const verificationCode = generateVerificationCode();
+
+	const user = await User.findOne({ email: email }, "_id");
+	if(!user){
+		return res.status(404).json({ msg: "User not found" });
+	}
+
+	let verificationCodeObj;
+	try{
+		verificationCodeObj = await VerificationCode.findOne({ userId: user._id.toString() });
+	}catch(error){
+		console.log(error);
+	}
+	if(!verificationCodeObj){
+		verificationCodeObj = await VerificationCode.create({
+			userId: user._id.toString(),
+			code: verificationCode
+		});
+	}else{
+		verificationCodeObj.code = verificationCode;
+		verificationCodeObj.updated_at = Date.now();
+		verificationCodeObj.save();
+	}
+	// console.log(verificationCodeObj);
+
+	// Save the token and email in your database for later verification
+	const mailOptions = {
+			from: process.env.GMAIL,
+			to: email,
+			subject: 'Confirm your email address',
+			html: `
+				<h3>Verify your email</h3>
+				<p>Hi,</p>
+				<p>Enter this code in the next 5 minutes to sign up:<p>
+				<strong>${verificationCode}</strong>
+				<p>If you didn't request this code you can safely ignore this email.</p>
+				<p>Someone else might have typed your email addess by mistake.</p>
+			`,
+	};
+
+	transporter.sendMail(mailOptions, (error, info) => {
+			if (error) {
+					console.log(error);
+					return res.status(500).send('Error sending verification email.');
+			} else {
+					console.log('Email sent: ' + info.response);
+					return res.send('Verification email sent.');
+			}
+	});
+
+	return res.send('Verification email sent.');
+}
+
+const validateEmailVerificationCode = async (req, res) => {
+	let verificationCodeObj;
+	try{
+		verificationCodeObj = await VerificationCode.findOne({ userId: req.user._id.toString() });
+	}catch(error){
+		return res.status(404).json({ msg: "Verification code not found" });
+	}
+
+	if(verificationCodeObj){
+		const { updated_at } = verificationCodeObj;
+		const ageOfVerificationCode = getMinutesDifference(updated_at, new Date());
+
+		// if the age of verification code greater than 5 mins
+		if(ageOfVerificationCode > 5){
+			return res.status(400).json({ msg: "Outdated verification code" });
+		}
+
+		const { confirmationCode } = req.body;
+		if(!confirmationCode){
+			return res.status(400).json({ msg: "Invalid verification code" });
+		}
+
+		if(confirmationCode !== verificationCodeObj.code){
+			return res.status(400).json({ msg: "Wrong verification code" });
+		}
+	}
+
+	return res.status(200).send({status: true, msg: 'Validated verification code'});
+}
+
+module.exports = { checkRegistrationFormOne, checkRegistrationFormTwo, register, login, validateToken,
+	sendVerificationEmail, validateEmailVerificationCode, comparePasswords, hashPassword };
