@@ -176,4 +176,52 @@ const validateToken = async (req, res) => {
     return res.json({msg: "success"});
 }
 
-module.exports = { register, login, validateToken, comparePasswords, hashPassword };
+const checkRegistrationFormOne = async (req, res) => {
+	let { first_name, last_name, user_name, email, password, password2 } = req.body;
+
+	if(!first_name){
+			return res.status(400).json({msg: "First name cannot be null"});
+	}
+	if(!email){
+			return res.status(400).json({msg: "Email cannot be null"});
+	}
+	if(!password){
+			res.status(400).json({msg: "Password cannot be null"});
+	}
+	if(password !== password2){
+			return res.status(400).json({msg: "Passwords do not match"});
+	}
+
+	const sameEmail = await User.findOne({ email: email });
+	if(sameEmail !== null && sameEmail !== undefined){
+		return res.status(400).json({ msg: "User with that email already exist" });
+	}
+
+	return res.status(200).json({ msg: "Success" });
+}
+
+const checkRegistrationFormTwo = async (req, res) => {
+	let { dateOfBirth, placeOfBirth, currentLocation } = req.body;
+
+	// if dateOfBirth is empty
+	if(!dateOfBirth){
+		return res.status(400).json({msg: "Date of birth cannot be null"});
+	}
+
+	if(!currentLocation){
+			return res.status(400).json({msg: "Current location cannot be null"});
+	}else{
+		let currentLocationInArray = currentLocation.split(",");
+		if(currentLocationInArray && currentLocationInArray.length !== 3){
+			return res.status(400).json({msg: "Invalid location format"});
+		}
+	}
+
+	if(!dateOfBirth){
+			return res.status(400).json({msg: "CurrentLocation cannot be null"});
+	}
+
+	return res.status(200).json({ msg: "Success" });
+}
+
+module.exports = { checkRegistrationFormOne, checkRegistrationFormTwo, register, login, validateToken, comparePasswords, hashPassword };

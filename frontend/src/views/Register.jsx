@@ -1,6 +1,6 @@
 import { Link, Navigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
-// import axios from "axios";
+import axios from "axios";
 
 import { AppContext } from "../appContext";
 
@@ -10,7 +10,8 @@ function Register(){
 			last_name: "",
 			user_name: "",
 			email: "",
-			birthday: "",
+			gender: "",
+			dateOfBirth: "",
 			placeOfBirth: "",
 			currentLocation: "",
 			password: "",
@@ -112,7 +113,7 @@ function Register(){
 				// }
 
 				console.log(userData);
-				nextStep();
+				// nextStep();
 				// axios.post("/api/auth/register", userData)
 				// 	.then(response => {
 				// 			console.log(response.data);
@@ -133,8 +134,6 @@ function Register(){
         const target = event.target;
 				const targetNameInArray = target.name.split("-");
 				let targetName = targetNameInArray[0];
-
-				console.log(targetName, target.value);
 
 				// if targetName was something like "place-of-birth"
 				if(targetNameInArray.length > 1){
@@ -216,6 +215,44 @@ function Register(){
 			setFormStep(prev => prev + 1);
 		}
 
+	function nextFormOne(){
+		axios.post("/api/auth/check-registration-form-one", userData)
+			.then(response => {
+					console.log(response.data);
+					setHttpErrorMessage("");
+					nextStep();
+					// const { token } = response.data;
+					// if(token !== null && token !== ""){
+					// 		storeToken(token);
+					// }
+			})
+			.catch(error => {
+					const { msg } = error.response.data;
+					if(msg !== undefined && msg !== null){
+						setHttpErrorMessage(msg);
+					}
+			})
+	}
+
+		function nextFormTwo(){
+			axios.post("/api/auth/check-registration-form-two", userData)
+				.then(response => {
+						console.log(response.data);
+						setHttpErrorMessage("");
+						nextStep();
+				})
+				.catch(error => {
+						const { msg } = error.response.data;
+						if(msg !== undefined && msg !== null){
+							setHttpErrorMessage(msg);
+						}
+				})
+		}
+
+		function prevStep(){
+			setFormStep(prev => prev - 1);
+		}
+
     if(Object.keys(user).length !== 0){
         return (
             <Navigate to="/account"/>
@@ -229,9 +266,8 @@ function Register(){
                 <h3 className="text-center">Welcome to New Chat</h3>
                 <div>
                     <p className="text-center">You don't have a New Chat account?</p>
-
-											{ formStep === 1 && <form onSubmit={submitForm}>
-												<div>	
+											<form onSubmit={submitForm}>
+												{ formStep === 1 && <div>	
 													<div className="custom-form-input-ctn">
 															<label className="custom-label">Firstname</label>
 															<input className="custom-input" name="first_name"
@@ -265,17 +301,9 @@ function Register(){
 															{ submitted && userData.password2 === ""
 																&& <small className="text-danger">Confirm Password cannot be empty</small> }
 													</div>
-												</div>
-                        <div className="text-end c-mt-2">
-                            <button className="custom-button-green">Register</button>
-                        </div>
-												<div className="text-danger text-center">
-														{ httpErrorMessage !== "" && httpErrorMessage }
-												</div>
-                    </form> }
+												</div> }
 
-										{ formStep === 2 && <form onSubmit={submitForm}>
-												<div>
+												{ formStep === 2 && <div>
 													<div className="custom-form-input-ctn mb-2">
 															<label className="custom-label">Gender</label>
 															<select className="custom-input" name="gender" onChange={handleOnChange}>
@@ -286,9 +314,9 @@ function Register(){
 													</div>
 													<div className="custom-form-input-ctn mb-2">
 															<label className="custom-label">{`Date`} of Birth</label>
-															<input className="custom-input" name="birthday" value={userData.birthday}
+															<input className="custom-input" name="date-of-birth" value={userData.dateOfBirth}
 																	onChange={handleOnChange} type="date" placeholder="Date of birth"/>
-															{ submitted && userData.birthday === ""
+															{ submitted && userData.dateOfBirth === ""
 																&& <small className="text-danger">Birthday cannot be empty</small> }
 													</div>
 													<div className="custom-form-input-ctn mb-2">
@@ -309,7 +337,7 @@ function Register(){
 																&& <small className="text-danger">Location cannot be empty</small> }
 													</div>
 													<div className="custom-form-input-ctn mb-3">
-															<label className="custom-label">Address</label>
+															<label className="custom-label">Current Location</label>
 															
 															<div>
 																<input type="radio" id="currentlocation-manual" name="currentlocation-choice"
@@ -326,14 +354,23 @@ function Register(){
 															{ submitted && userData.currentLocation === ""
 																&& <small className="text-danger">Location cannot be empty</small> }
 													</div>
-												</div>
-                        <div className="text-end c-mt-2">
-                            <button className="custom-button-green">Next</button>
-                        </div>
+												</div> }
+
+												{ formStep === 1 && <div className="d-flex justify-content-end c-mt-2">
+														<button type="button" onClick={nextFormOne}
+															className="custom-button-green">Next</button>
+                        </div> }
+
+												{ formStep === 2 && <div className="d-flex justify-content-between c-mt-2">
+														<button type="button" onClick={prevStep}
+															className="custom-button-green">Prev</button>
+														<button type="button" onClick={nextFormTwo} className="custom-button-green">Signup</button>
+                        </div> }
+
 												<div className="text-danger text-center">
 														{ httpErrorMessage !== "" && httpErrorMessage }
 												</div>
-                    </form> }
+                    </form>
                 </div>
                 <div className="">
 										<span>You have an account?</span>
