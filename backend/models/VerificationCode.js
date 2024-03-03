@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const VerificationCode = mongoose.Schema({
-		userId: {
+		email: {
 			type: String,
 			required: [true, "userId cannot not be null"]
 		},

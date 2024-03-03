@@ -15,7 +15,8 @@ function Register(){
 			placeOfBirth: "",
 			currentLocation: "",
 			password: "",
-			password2: ""
+			password2: "",
+			confirmationCode: ""
 		});
 	const [httpErrorMessage, setHttpErrorMessage] = useState("");
 	const [submitted, setSubmitted] = useState(false);
@@ -29,10 +30,23 @@ function Register(){
 	const { user, storeToken } = context;
 
 	const [formStep, setFormStep] = useState(1);
+	const [ mailConfirmForm, setMailConfirmForm ] = useState({
+			confirmationCode: "",
+		});
 
 	useEffect(() => {
 		// getLocation();
 	}, []);
+
+	function getVerificationCode(){
+		axios.post("/api/auth/send-verification-email", { email: userData.email })
+			.then(res => {
+				console.log(res.data);
+			})
+			.catch(err => {
+				console.log(err.response);
+			})
+	}
 
 	useEffect(() => {
 		if(placeOfBirthChoice === "GEOLOCATION" && deviceLocation){
@@ -80,6 +94,20 @@ function Register(){
 		}
 	}
 
+	// {
+	// 	event.preventDefault();
+	// 	// setSubmitted(true);
+
+	// 	axios.post(`/api/auth/validate-email-verification-code`, mailConfirmForm)
+	// 		.then(res => {
+	// 			// console.log(res.data);
+	// 			nextStep();
+	// 		})
+	// 		.catch(err => {
+	// 			console.log(err.response);
+	// 		})
+	// }
+
     function submitForm(event){
         event.preventDefault();
 				// setSubmitted(true);
@@ -113,22 +141,23 @@ function Register(){
 				// }
 
 				console.log(userData);
-				// nextStep();
-				// axios.post("/api/auth/register", userData)
-				// 	.then(response => {
-				// 			console.log(response.data);
-				// 			const { token } = response.data;
-				// 			if(token !== null && token !== ""){
-				// 					storeToken(token);
-				// 			}
-				// 	})
-				// 	.catch(error => {
-				// 			const { msg } = error.response.data;
-				// 			if(msg !== undefined && msg !== null){
-				// 				setHttpErrorMessage(msg);
-				// 			}
-				// 	})
+				axios.post("/api/auth/register", userData)
+					.then(response => {
+							console.log(response.data);
+							const { token } = response.data;
+							if(token){
+									storeToken(token);
+							}
+					})
+					.catch(error => {
+							const { msg } = error.response.data;
+							if(msg !== undefined && msg !== null){
+								console.log(msg);
+								setHttpErrorMessage(msg);
+							}
+					})
     }
+
 
     function handleOnChange(event){
         const target = event.target;
@@ -239,6 +268,7 @@ function Register(){
 				.then(response => {
 						console.log(response.data);
 						setHttpErrorMessage("");
+						getVerificationCode();
 						nextStep();
 				})
 				.catch(error => {
@@ -263,10 +293,11 @@ function Register(){
         <div className="mt-5 auth-layout">
             {/* <div></div> */}
             <article>
-                <h3 className="text-center">Welcome to New Chat</h3>
+								{ formStep !== 3 && <h3 className="text-center">Welcome to New Chat</h3> }
                 <div>
-                    <p className="text-center">You don't have a New Chat account?</p>
+											{ formStep !== 3 && <p className="text-center">You don't have a New Chat account?</p> }
 											<form onSubmit={submitForm}>
+
 												{ formStep === 1 && <div>	
 													<div className="custom-form-input-ctn">
 															<label className="custom-label">Firstname</label>
@@ -356,6 +387,18 @@ function Register(){
 													</div>
 												</div> }
 
+												{ formStep === 3 && <div>
+													<div className="text-center">
+														<h5>Email Confirmation Code</h5>
+													</div>
+													<p>
+														Enter the confirmation code we sent to {`${userData.email}`}.
+														<button type="button" className="link-like-btn"
+															onClick={getVerificationCode}>Resend Code</button>
+													</p>
+													<input placeholder="Confirmation Code" name="confirmation-code" onChange={handleOnChange}/>
+												</div> }
+
 												{ formStep === 1 && <div className="d-flex justify-content-end c-mt-2">
 														<button type="button" onClick={nextFormOne}
 															className="custom-button-green">Next</button>
@@ -366,6 +409,11 @@ function Register(){
 															className="custom-button-green">Prev</button>
 														<button type="button" onClick={nextFormTwo} className="custom-button-green">Signup</button>
                         </div> }
+
+												{ formStep === 3 && <div className="d-flex justify-content-end c-mt-2">
+														<button className="custom-button-green">Confirm</button>
+                        </div> }
+
 
 												<div className="text-danger text-center">
 														{ httpErrorMessage !== "" && httpErrorMessage }

@@ -7,7 +7,6 @@ const nodemailer = require('nodemailer');
 const User = require("../models/User");
 const VerificationCode = require("../models/VerificationCode");
 
-
 // Function to generate a 6-digit verification code
 const generateVerificationCode = () => {
   const code = crypto.randomBytes(3).readUIntLE(0, 3) % 1000000; // 3 bytes = 24 bits
@@ -54,9 +53,89 @@ function comparePasswords(hashedPassword, plaintextPassword){
     })
 }
 
+const validateEmailVerificationCodeLocal = async (param) => {
+	const { email, confirmationCode } = param;
+	if(!email){
+		throw new Error("Email not provided");
+	}
+
+	let verificationCodeObj;
+	try{
+		verificationCodeObj = await VerificationCode.findOne({ email: email });
+	}catch(error){
+		throw new Error("Verification code not found");
+	}
+
+	if(verificationCodeObj){
+		const { updated_at } = verificationCodeObj;
+		const ageOfVerificationCode = getMinutesDifference(updated_at, new Date());
+
+		// if the age of verification code greater than 5 mins
+		if(ageOfVerificationCode > 5){
+			throw new Error("Outdated verification code");
+		}
+
+		if(!confirmationCode){
+			throw new Error("Invalid verification code");
+		}
+
+		if(confirmationCode !== verificationCodeObj.code){
+			throw new Error("Wrong verification code");
+		}
+	}
+
+	return true;
+}
+
+const validateEmailVerificationCode = async (req, res) => {
+	const { email } = req.body;
+
+	if(!email){
+		return res.status(400).json({ msg: "Email not provided" });
+	}
+
+	let verificationCodeObj;
+	try{
+		verificationCodeObj = await VerificationCode.findOne({ email: email });
+	}catch(error){
+		return res.status(404).json({ msg: "Verification code not found" });
+	}
+
+	if(verificationCodeObj){
+		const { updated_at } = verificationCodeObj;
+		const ageOfVerificationCode = getMinutesDifference(updated_at, new Date());
+
+		// if the age of verification code greater than 5 mins
+		if(ageOfVerificationCode > 5){
+			return res.status(400).json({ msg: "Outdated verification code" });
+		}
+
+		const { confirmationCode } = req.body;
+		if(!confirmationCode){
+			return res.status(400).json({ msg: "Invalid verification code" });
+		}
+
+		if(confirmationCode !== verificationCodeObj.code){
+			return res.status(400).json({ msg: "Wrong verification code" });
+		}
+	}
+
+	return res.status(200).send({status: true, msg: 'Validated verification code'});
+}
+
 const register = async(req, res) => {
 	let { first_name, last_name, user_name, email, password, password2, placeOfBirth, currentLocation,
-		dateOfBirth } = req.body;
+		dateOfBirth, confirmationCode } = req.body;
+
+	if(!confirmationCode){
+		return res.status(400).json({msg: "Invalid confirmation code"});
+	}else{
+		try{
+			await validateEmailVerificationCodeLocal({ email, confirmationCode });
+		}catch(error){
+			return res.status(400).json({msg: "Invalid confirmation code"});
+		}
+	}
 
 	if(!first_name){
 			return res.status(400).json({msg: "First name cannot be null"});
@@ -264,20 +343,20 @@ const sendVerificationEmail = async (req, res) => {
 
 	const verificationCode = generateVerificationCode();
 
-	const user = await User.findOne({ email: email }, "_id");
-	if(!user){
-		return res.status(404).json({ msg: "User not found" });
-	}
+	// const user = await User.findOne({ email: email }, "_id");
+	// if(!user){
+	// 	return res.status(404).json({ msg: "User not found" });
+	// }
 
 	let verificationCodeObj;
 	try{
-		verificationCodeObj = await VerificationCode.findOne({ userId: user._id.toString() });
+		verificationCodeObj = await VerificationCode.findOne({ email: email });
 	}catch(error){
 		console.log(error);
 	}
 	if(!verificationCodeObj){
 		verificationCodeObj = await VerificationCode.create({
-			userId: user._id.toString(),
+			email: email,
 			code: verificationCode
 		});
 	}else{
@@ -315,35 +394,6 @@ const sendVerificationEmail = async (req, res) => {
 	return res.send('Verification email sent.');
 }
 
-const validateEmailVerificationCode = async (req, res) => {
-	let verificationCodeObj;
-	try{
-		verificationCodeObj = await VerificationCode.findOne({ userId: req.user._id.toString() });
-	}catch(error){
-		return res.status(404).json({ msg: "Verification code not found" });
-	}
-
-	if(verificationCodeObj){
-		const { updated_at } = verificationCodeObj;
-		const ageOfVerificationCode = getMinutesDifference(updated_at, new Date());
-
-		// if the age of verification code greater than 5 mins
-		if(ageOfVerificationCode > 5){
-			return res.status(400).json({ msg: "Outdated verification code" });
-		}
-
-		const { confirmationCode } = req.body;
-		if(!confirmationCode){
-			return res.status(400).json({ msg: "Invalid verification code" });
-		}
-
-		if(confirmationCode !== verificationCodeObj.code){
-			return res.status(400).json({ msg: "Wrong verification code" });
-		}
-	}
-
-	return res.status(200).send({status: true, msg: 'Validated verification code'});
-}
 
 module.exports = { checkRegistrationFormOne, checkRegistrationFormTwo, register, login, validateToken,
 	sendVerificationEmail, validateEmailVerificationCode, comparePasswords, hashPassword };
