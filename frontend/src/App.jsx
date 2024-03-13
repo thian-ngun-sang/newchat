@@ -3,6 +3,8 @@ import axios from 'axios';
 
 import Login from './views/Login';
 import Register from './views/Register';
+import AddPhoto from './views/AddPhoto';
+import MoreAbout from './views/MoreAbout';
 import Home from './views/Home';
 import Users from "./views/Users";
 import PeerAccount from './views/PeerAccount';
@@ -41,14 +43,17 @@ function App() {
             <Route path="/login" element={<Login/>}/>
             <Route path="/register" element={<Register/>}/>
 
+						<Route path="/add-photo" element={<AddPhoto/>}/>
+						<Route path="/more-about" element={<MoreAbout/>}/>
+
             <Route path="/" element={<Authorize/>}>
               <Route path="/account/edit" element={<EditProfile/>}/>
               <Route path="/account/change-password" element={<ChangePassword/>}/>
               <Route path="/" element={<AppLayout/>}>
                 <Route index path="/" element={<Home/>}/>
                 <Route path="/discover" element={<Discover/>}/>
-                <Route path="/profile/:id" element={<Profile/>}/>
-                <Route path="/account" element={<Account/>}/>
+                <Route path="/profile/:id" element={<Account/>}/>
+                <Route path="/account/:id" element={<Account/>}/>
                 <Route path="/users" element={<Users/>}/>
                 <Route path="/user/:id" element={<PeerAccount/>}/>
                 <Route path="/chat" element={<Chat/>}/>

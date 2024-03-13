@@ -135,4 +135,30 @@ const updateCoverImage = (req, res) => {
     return res.status(200).json({ msg: "Cover image has been updated", coverImage: user.cover_image });
 }
 
-module.exports = { index, show, updateAccount, updatePassword, updateProfileImage, updateCoverImage, account, peerAccount };
+const addMoreAboutUser = (req, res) => {
+		const user = req.user;
+		let { sexualOrientation, profession, relationshipStatus, idealRelationship, languages } = req.body;
+
+		idealRelationship = idealRelationship.map(item => item.trim());
+		languages = languages.map(item => item.trim());
+
+		user.overviewInfo = { sexualOrientation, profession, relationshipStatus, idealRelationship, languages: languages };
+		console.log(user);
+
+		user.save();
+    return res.status(200).json({ msg: "Success" });
+}
+
+const addBioInfo = (req, res) => {
+		const user = req.user;
+		const { height, weight } = req.body;
+
+		console.log(height);
+	
+		user.bioInfo = { height, weight };
+		user.save()
+    return res.status(200).json({ msg: "Success" });
+}
+
+module.exports = { index, show, updateAccount, updatePassword, updateProfileImage, updateCoverImage, addMoreAboutUser,
+	addBioInfo, account, peerAccount };

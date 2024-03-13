@@ -12,6 +12,7 @@ const authenticate = async (req, res, next) => {
     }
 
     const token = authorization.split(" ")[1];
+
     if(token === "" || token === null || token === "NULL" || token === "null" || token === undefined){
         return next();
     }

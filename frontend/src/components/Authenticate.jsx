@@ -38,7 +38,8 @@ function Authenticate(){
 										setIsLoading(false);
                 })
                 .catch(error => {
-                    console.log(error.response);
+										const { msg } = error?.response?.data;
+										console.log(msg);
                     setIsLoading(false);
                 })
         }else{

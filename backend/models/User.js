@@ -49,6 +49,25 @@ const User = mongoose.Schema({
         // ref: "Location"
         type: String
     },
+		overviewInfo: {
+			type: {
+				sexualOrientation: String,
+				profession: String,
+				relationshipStatus: String,
+				idealRelationship: [String],
+				languages: [String]
+			}
+		},
+		bioInfo: {
+			type: {
+				height: {
+					type: Number,
+					min: 0.0,  // Minimum value for the float
+					max: 500.0, // Maximum value for the float
+				},
+				weight: Number
+			}
+		},
     created_at: {
         type: Date,
         default: new Date()

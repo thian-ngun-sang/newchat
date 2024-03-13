@@ -12,6 +12,7 @@ const authRoute = require("./routes/auth.js");
 const dashboardRoute = require("./routes/dashboard.js");
 const chatBoxRoute = require("./routes/chatBox.js");
 const userRoute = require("./routes/user.js");
+const loveRelRoute = require("./routes/loveRel.js");
 
 const { notFound } = require("./errors/notFound.js");
 const { internalError } = require("./errors/internalError.js");
@@ -138,6 +139,7 @@ app.use('/api/v1', authorize);
 app.use('/api/v1', dashboardRoute);
 app.use('/api/v1', chatBoxRoute);
 app.use('/api/v1/user', userRoute);
+app.use('/api/v1/love-rel', loveRelRoute);
 
 app.get('/', async (req, res) => {
 

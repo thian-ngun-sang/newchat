@@ -8,7 +8,7 @@ import { AppContext } from "../appContext";
 
 function Navbar(){
     const context = useContext(AppContext);
-    const { webSocket } = context;
+    const { user, webSocket } = context;
     const [newChatContents, setNewChatContents] = useState([]);
 
     return (
@@ -28,7 +28,7 @@ function Navbar(){
                     Chat
                     {/* ({newChatContents.length}) */}
                 </NavLink>
-                <NavLink className="custom-nav-item" activeclassname="active" to="/account">Account</NavLink>
+                <NavLink className="custom-nav-item" activeclassname="active" to={`/account/${user._id}`}>Account</NavLink>
             </div>
         </div>
     );

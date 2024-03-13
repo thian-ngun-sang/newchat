@@ -4,6 +4,7 @@ import axios from "axios";
 import { AppContext } from "../appContext";
 
 import AuthLayout from "../components/AuthLayout";
+import SpinningWheel from "../components/SpinningWheel";
 
 function Login(){
     const context =  useContext(AppContext);
@@ -16,6 +17,7 @@ function Login(){
     });
 		const [submitted, setSubmitted] = useState(false);
 		const [httpErrorMessage, setHttpErrorMessage] = useState("");
+		const [submitting, setSubmitting] = useState(false);
 
     if(Object.keys(user).length !== 0){
         return (
@@ -40,17 +42,21 @@ function Login(){
 				if(userData.email === "" || userData.password === ""){
 					return;
 				}
+
+				setSubmitting(true);
         axios.post("/api/auth/login", userData)
             .then(response => {
                 const data = response.data;
                 const { token } = data;
                 storeToken(token);
+								setSubmitting(false);
             })
             .catch(error => {
 							const { msg } = error.response.data;
 							if(msg !== undefined && msg !== null){
 								setHttpErrorMessage(msg);
 							}
+							setSubmitting(false);
 						})
     }
 
@@ -89,6 +95,7 @@ function Login(){
 										<Link to="/register" className="ms-1">Register here</Link>
                 </div>
             </article>
+						{/* <SpinningWheel/> */}
         </AuthLayout>
     );
 }

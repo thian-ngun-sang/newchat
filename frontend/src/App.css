@@ -23,6 +23,43 @@
 	--app-margin: 20%;
 }
 
+.spinning-wheel{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: #f7f9fb;
+	transition: opacity 0.7s, visibility 0.75s;
+}
+
+.spinning-wheel::after{
+	content: "";
+	width: 4.6rem;
+	height: 4.6rem;
+	border: 1rem solid #dddddd;
+	border-top-color: #7449f5;
+	border-radius: 50%;
+	animation: loading 0.75s ease infinite;
+}
+
+@keyframes loading{
+	from {
+		transform: rotate(0turn);
+	}
+	to{
+		transform: rotate(1turn);
+	}
+}
+
+
+.cms-1{
+  margin-left: 0.2rem;
+}
+
 .cms-7{
   margin-left: 7px !important;
 }
@@ -39,12 +76,24 @@
   margin-left: 30px !important;
 }
 
-.c-mt-2{
+.cmt-2{
 	margin-top: 0.4rem;
 }
 
-.c-mt-3{
+.cmt-3{
 	margin-top: 0.6rem;
+}
+
+.cmt-4{
+	margin-top: 0.8rem;
+}
+
+.cme-10{
+	margin-right: 6rem;
+}
+
+.cmt-10{
+	margin-top: 6rem;
 }
 
 .link-like-btn{
@@ -134,6 +183,21 @@
   background-color: white;
 }
 
+.cbtn-bd-green{
+  height: 25px;
+  border: 1px solid green;
+  border-radius: 3px;
+  background-color: white;
+}
+
+.bd-green{
+  border: 1px solid green;
+}
+
+.bd-red{
+  border: 1px solid red;
+}
+
 .custom-icon, .custom-icon-lg, .custom-icon-xl, .custom-icon-xxl{
   cursor: pointer;
 }
@@ -163,6 +227,30 @@
 /* .filter-white{
   filter: invert(48%) sepia(79%) saturate(2000%) hue-rotate(86deg) brightness(118%) contrast(119%);
 } */
+
+/* Add Photo start */
+
+.add-photo--view{
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	padding: 1.25rem;
+}
+
+.add-photo--front-img{
+	width: 100%;
+	margin-bottom: 0.8rem;
+}
+
+/* End Photo start */
+
+/* More About start */
+
+.more-about--checkbox-ctn{
+	display: grid;
+	/* grid-template-columns: repeat(auto-fit, minmax(1rem, 1.2rem)); */
+	grid-template-columns: repeat(auto-fit, minmax(100px, 20rem));
+}
+
+/* More About end */
 
 /* Navbar start */
 .app-nav{
@@ -224,7 +312,8 @@
 	display: grid;
 	gap: 1.3rem;
 	/* grid-template-columns: 1fr 1fr 1fr; */
-	grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(10rem, 15rem));
+	/* grid-template-columns: auto auto auto; */
 }
 
 .discover--user-list-item-img{
@@ -267,7 +356,16 @@
 	outline: none;
 	border: medium;
 	border-radius: 0.8rem;
-	padding-inline: 0.5rem;
+	padding-inline: 0.6rem;
+	padding-block: 0.2rem;
+}
+
+.profile--send-love-request{
+	background-color: #0000DD;
+	outline: none;
+	border: medium;
+	border-radius: 0.8rem;
+	padding-inline: 0.6rem;
 	padding-block: 0.2rem;
 }
 

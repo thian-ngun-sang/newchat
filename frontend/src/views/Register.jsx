@@ -1,4 +1,4 @@
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 
@@ -30,9 +30,7 @@ function Register(){
 	const { user, storeToken } = context;
 
 	const [formStep, setFormStep] = useState(1);
-	const [ mailConfirmForm, setMailConfirmForm ] = useState({
-			confirmationCode: "",
-		});
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		// getLocation();
@@ -94,63 +92,51 @@ function Register(){
 		}
 	}
 
-	// {
-	// 	event.preventDefault();
-	// 	// setSubmitted(true);
-
-	// 	axios.post(`/api/auth/validate-email-verification-code`, mailConfirmForm)
-	// 		.then(res => {
-	// 			// console.log(res.data);
-	// 			nextStep();
-	// 		})
-	// 		.catch(err => {
-	// 			console.log(err.response);
-	// 		})
-	// }
-
     function submitForm(event){
         event.preventDefault();
-				// setSubmitted(true);
-				// 
-				// if(userData.first_name === "" || userData.email === "" || userData.password === ""
-				// 	|| userData.password2 === ""){
-				// 	return;
-				// }
+				setSubmitted(true);
+				
+				if(userData.first_name === "" || userData.email === "" || userData.password === ""
+					|| userData.password2 === ""){
+					return;
+				}
 
-        // if(userData.password !== userData.password2){
-				// 		setHttpErrorMessage("Passwords do not match");
-				// 		return;
-        // }
+        if(userData.password !== userData.password2){
+						setHttpErrorMessage("Passwords do not match");
+						return;
+        }
 
-				// // check if placeOfBirth is in "city, state, country" format
-				// if(userData.placeOfBirth){
-				// 	let placeOfBirthInArray = userData.placeOfBirth.split(",");
-				// 	if(placeOfBirthInArray && placeOfBirthInArray.length !== 3){
-				// 		console.log("Invalid location format");
-				// 		return;
-				// 	}
-				// }
+				// check if placeOfBirth is in "city, state, country" format
+				if(userData.placeOfBirth){
+					let placeOfBirthInArray = userData.placeOfBirth.split(",");
+					if(placeOfBirthInArray && placeOfBirthInArray.length !== 3){
+						console.log("Invalid location format");
+						return;
+					}
+				}
 
-				// // check if placeOfBirth is in "city, state, country" format
-				// if(userData.currentLocation){
-				// 	let currentLocationInArray = userData.currentLocation.split(",");
-				// 	if(currentLocationInArray && currentLocationInArray.length !== 3){
-				// 		console.log("Invalid location format");
-				// 		return;
-				// 	}
-				// }
+				// check if placeOfBirth is in "city, state, country" format
+				if(userData.currentLocation){
+					let currentLocationInArray = userData.currentLocation.split(",");
+					if(currentLocationInArray && currentLocationInArray.length !== 3){
+						console.log("Invalid location format");
+						return;
+					}
+				}
 
-				console.log(userData);
 				axios.post("/api/auth/register", userData)
 					.then(response => {
-							console.log(response.data);
 							const { token } = response.data;
 							if(token){
-									storeToken(token);
+								// storeToken(token);
+								localStorage.setItem("token", token);
+								navigate("/add-photo");
 							}
 					})
 					.catch(error => {
-							const { msg } = error.response.data;
+							console.log(error);
+
+							const { msg } = error?.response?.data;
 							if(msg !== undefined && msg !== null){
 								console.log(msg);
 								setHttpErrorMessage(msg);
@@ -283,11 +269,11 @@ function Register(){
 			setFormStep(prev => prev - 1);
 		}
 
-    if(Object.keys(user).length !== 0){
-        return (
-            <Navigate to="/account"/>
-        );
-    }
+		useEffect(() => {
+			if(Object.keys(user).length !== 0){
+				navigate("/account");
+			}
+		}, []);
 
     return (
         <div className="mt-5 auth-layout">

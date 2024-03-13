@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 
 import axios from "axios";
 
@@ -27,6 +27,7 @@ function Profile(){
 	const { calculateAge } = context;
 
 	const [profileUser, setProfileUser] = useState(null);
+	const [chatUrlParam, setChatUrlParam] = useState("");
 
 	function stepBack(){
 			navigate(-1);
@@ -41,6 +42,15 @@ function Profile(){
 			.catch(err => {
 				console.log(err.response);
 			})
+	}, []);
+
+	useEffect(() => {
+			axios.get(`/api/v1/get-chatbox-id/${userId}`)
+					.then(res => {
+							const { urlParam } = res.data;
+							setChatUrlParam(urlParam);
+					})
+					.catch(err => console.log(err));
 	}, []);
 
 	return <div>
@@ -65,9 +75,15 @@ function Profile(){
 						</div>
 						<div className="mt-3 d-flex justify-content-between">
 							<div>
-								<button className="profile--message-me">
+								{/* <button className="profile--message-me">
 									Message me
-								</button>
+								</button> */}
+								<Link className="profile--send-love-request text-decoration-none text-white" to={`/chat/${chatUrlParam}`}>
+									Add Love request	
+								</Link>
+								<Link className="profile--message-me ms-2 text-decoration-none text-white" to={`/chat/${chatUrlParam}`}>
+									Message me
+								</Link>
 							</div>
 							<div>
 								<span>

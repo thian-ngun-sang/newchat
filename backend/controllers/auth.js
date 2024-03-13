@@ -265,10 +265,16 @@ const validateToken = async (req, res) => {
         try{
             const decodedToken = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
             const { user_id } = decodedToken;
-            let user = await User.findById(user_id, "-__v -password -updated_at -created_at")
-                .then(user => user)
-                .catch(error => console.log(error))
+						let user;
+						try{
+							user = await User.findById(user_id, "-__v -password -updated_at -created_at")
+						}catch(err){
+							console.log(err);
+						}
             
+						if(!user){
+							return res.status(400).json({status: "Bad Request", msg: "Invalid Token"});
+						}
             return res.json({msg: "success", decodedToken, user});
         }catch(error){
             return res.status(400).json({status: "Bad Request", msg: "Invalid Token"});
