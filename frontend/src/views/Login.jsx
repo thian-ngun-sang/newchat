@@ -21,7 +21,7 @@ function Login(){
 
     if(Object.keys(user).length !== 0){
         return (
-            <Navigate to="/account"/>
+            <Navigate to={`/account/${user._id}`}/>
         );
     }
 

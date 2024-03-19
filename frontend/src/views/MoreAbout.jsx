@@ -111,7 +111,7 @@ function MoreAbout(){
 			return;
 		}
 
-		navigate("/account");
+		navigate(`/account/${user._id}`);
 	}
 
 const floatHeights = [
@@ -152,10 +152,10 @@ const weightList = [
 	}
 
 	// if overviewInfo is already filled,
-	// 	redirect user to '/account'
+	// 	redirect user to '/account/{id}'
 	useEffect(() => {
 		if(user.overviewInfo || user.bioInfo){
-			navigate("/account");
+			navigate(`/account/${user._id}`);
 		}
 	}, []);
 

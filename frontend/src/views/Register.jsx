@@ -271,7 +271,7 @@ function Register(){
 
 		useEffect(() => {
 			if(Object.keys(user).length !== 0){
-				navigate("/account");
+				navigate(`/account/${user._id}`);
 			}
 		}, []);
 

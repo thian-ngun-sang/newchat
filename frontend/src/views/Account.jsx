@@ -49,6 +49,7 @@ function Account(){
 		const [theUserIsTheCurrentUser, setTheUserIsTheCurrentUser] = React.useState(false);
 
 		const accountOptionRef = useRef(null);
+		const accountEllipsisRef = useRef(null);
 
     const accountOption = (<div className="position-absolute account-option-list" ref={accountOptionRef}>
         <ul className="custom-list">
@@ -112,31 +113,38 @@ function Account(){
 
 		function mousedownOutsideAccountOption(event){
 
-			if(accountOptionRef.current && !accountOptionRef.current.contains(event.target)){
-				console.log("Clicked outside account option")
+			// if accountOptionRef.current is not null and accountOptionRef.current does not contain target
+			// 	and accountEllipsisRef.current is not null and accountEllipsisRef.current does not contain target
+			if(accountOptionRef.current && !accountOptionRef.current.contains(event.target)
+				&& accountEllipsisRef.current && !accountEllipsisRef.current.contains(event.target)){
+				// console.log("Clicked outside accountOptionRef and accountEllipsisRef");
+
 				if(editOptionState){
-					console.log("Edit option state is open");
 					setEditOptionState(false);
 					document.removeEventListener("mousedown", mousedownOutsideAccountOption);
 				}else{
 					document.removeEventListener("mousedown", mousedownOutsideAccountOption);
 				}
 
+			}else if(accountEllipsisRef.current && accountEllipsisRef.current.contains(event.target)){
+				// if accountEllipsisRef.current is not null and accountEllipsisRef.current contains target
+				document.removeEventListener("mousedown", mousedownOutsideAccountOption);
 			}else if(!accountOptionRef.current){
 				document.removeEventListener("mousedown", mousedownOutsideAccountOption);
 			}
 
+			// console.log("Clicked outside");
 		}
 
     function openAccountOption(){
-        setEditOptionState(prevState => !prevState);
-    }
+        setEditOptionState(prev => !prev);
 
-		useEffect(() => {
-				if(accountOptionRef.current){
+				// this function can not have the current value of editOptionState,
+				// 		but only it's old state, so the procedure is reversed
+				if(!editOptionState){
 					document.addEventListener("mousedown", mousedownOutsideAccountOption);
 				}
-		}, [accountOptionRef.current, editOptionState]);
+    }
 
     function updateProfileImage(){
         const formData = new FormData();
@@ -305,7 +313,8 @@ function Account(){
 
 													{ theUserIsTheCurrentUser
 														? <div className="text-end position-relative">
-																<img className="custom-icon-lg mt-2" alt="more-horizontal-icon" onClick={openAccountOption}
+																<img className="custom-icon-lg mt-2" ref={accountEllipsisRef}
+																	alt="more-horizontal-icon" onClick={openAccountOption}
 																	src={moreHorizontalIcon}/>
 																{ editOptionState && accountOption }
 															</div>
