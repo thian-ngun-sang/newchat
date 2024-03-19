@@ -119,12 +119,8 @@ function Account(){
 				&& accountEllipsisRef.current && !accountEllipsisRef.current.contains(event.target)){
 				// console.log("Clicked outside accountOptionRef and accountEllipsisRef");
 
-				if(editOptionState){
-					setEditOptionState(false);
-					document.removeEventListener("mousedown", mousedownOutsideAccountOption);
-				}else{
-					document.removeEventListener("mousedown", mousedownOutsideAccountOption);
-				}
+				setEditOptionState(false);
+				document.removeEventListener("mousedown", mousedownOutsideAccountOption);
 
 			}else if(accountEllipsisRef.current && accountEllipsisRef.current.contains(event.target)){
 				// if accountEllipsisRef.current is not null and accountEllipsisRef.current contains target
