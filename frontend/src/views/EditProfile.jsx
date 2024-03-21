@@ -128,7 +128,7 @@ function EditProfile(){
                     <input className="custom-input" name="current-location" value={userData.currentLocation}
                         onChange={handleOnChange} type="text" placeholder="Country, State, City"/>
                 </div>
-                <div className="text-end c-mt-3">
+                <div className="text-end cmt-3">
                     <button className="custom-button-green">Update</button>
                 </div>
 								{ httpErrorMessage !== ""

@@ -7,6 +7,22 @@ export function toUpperCaseWithUnderscores(inputString) {
   return inputString.replace(/-/g, '_').toUpperCase();
 }
 
+export function toTitleCase(str) {
+  // Split the string by underscores
+  let words = str.split('_');
+  
+  // Capitalize each word
+  let titleWords = words.map(word => {
+    // Convert the word to lowercase and capitalize the first letter
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+  
+  // Join the words back together with spaces
+  let titleString = titleWords.join(' ');
+  
+  return titleString;
+}
+
 export function validateImage(filename){
 	if(/[a-zA-Z0-9_\[\]]+\.(png)|(jpg)|(jpeg)|(webp)/.test(filename)){
 			return true;
@@ -42,4 +58,21 @@ export function calculateAge(dateOfBirth){
 	var age = Math.abs(year - 1970);
 
 	return age;
+}
+
+export function cmToFeetAndInches(cm){
+		// 1 inch is equal to 2.54 centimeters
+		let inches = cm / 2.54
+		
+		// 1 foot is equal to 12 inches
+		let feet = Math.floor(inches / 12)
+		let remaining_inches = Math.round(inches % 12)
+		
+		return { feet, inches: remaining_inches }
+}
+
+export function poundsToKilograms(pounds){
+		//  1 pound is approximately equal to 0.453592 kilograms
+		let kilograms = pounds * 0.453592;
+		return kilograms
 }

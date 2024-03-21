@@ -19,7 +19,7 @@ function Login(){
 		const [httpErrorMessage, setHttpErrorMessage] = useState("");
 		const [submitting, setSubmitting] = useState(false);
 
-    if(Object.keys(user).length !== 0){
+    if(user && Object.keys(user).length !== 0){
         return (
             <Navigate to={`/account/${user._id}`}/>
         );

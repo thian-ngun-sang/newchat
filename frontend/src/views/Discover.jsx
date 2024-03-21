@@ -37,7 +37,9 @@ function Discover(){
 
     return (
         <div>
-					Discover Page
+					<div className="text-center cmb-3">
+						<h3>Find someone</h3>
+					</div>
 					<div className="discover--user-list">
 						{ usersState }
 					</div>

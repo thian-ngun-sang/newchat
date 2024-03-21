@@ -242,7 +242,8 @@ function Register(){
 					// }
 			})
 			.catch(error => {
-					const { msg } = error.response.data;
+					console.log(error);
+					const { msg } = error?.response?.data;
 					if(msg !== undefined && msg !== null){
 						setHttpErrorMessage(msg);
 					}

@@ -28,7 +28,7 @@ function Navbar(){
                     Chat
                     {/* ({newChatContents.length}) */}
                 </NavLink>
-                <NavLink className="custom-nav-item" activeclassname="active" to={`/account/${user._id}`}>Account</NavLink>
+                <NavLink className="custom-nav-item" activeclassname="active" to={`/account/${user?._id}`}>Account</NavLink>
             </div>
         </div>
     );

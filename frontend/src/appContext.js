@@ -22,6 +22,16 @@ function AppContextProvider(props){
         });
     }
 
+		function releaseToken(){
+			localStorage.removeItem('token');
+			setAuthState(oldState => {
+					return {
+							...oldState,
+							token: ""
+					};
+			});
+		}
+
     function setUser(authUser){
         setAuthState(oldState => {
             return {
@@ -111,7 +121,7 @@ function AppContextProvider(props){
 		}
 
     return (
-        <AppContext.Provider value={{...authState, storeToken, setUser, setWebSocket, logout, validateImage,
+        <AppContext.Provider value={{...authState, storeToken, releaseToken, setUser, setWebSocket, logout, validateImage,
 						generateProfileImageUri, dashSeparatedToCamel, validateLocation, calculateAge }}>
             {props.children}
         </AppContext.Provider>

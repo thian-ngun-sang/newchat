@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 import axios from "axios";
 
-import { generateProfileImageUri } from "../utils";
+import { cmToFeetAndInches, poundsToKilograms, toTitleCase, calculateAge, generateProfileImageUri } from "../utils";
 
 // import cameraIcon from "../assets/icons/svgs/camera-plus.svg";
 import cameraIcon from "../assets/icons/svgs/white-camera.svg";
@@ -28,7 +28,7 @@ const imageTypes = ["image/jpeg", "image/png"];
 
 function Account(){
     const context = useContext(AppContext);
-    const { user, baseUrl  } = context;
+    const { user, setUser, releaseToken, baseUrl, calculateAge } = context;
 
     const routeParams = useParams();
     const { id } = routeParams;
@@ -58,6 +58,9 @@ function Account(){
             </li>
             <li>
                 <Link className="custom-link" to="/account/change-password">Change Password</Link>
+            </li>
+            <li>
+                <span className="link-like-btn" onClick={logout}>Logout</span>
             </li>
         </ul>
     </div>);
@@ -241,6 +244,10 @@ function Account(){
 				}
     }, [theUserIsTheCurrentUser, id]);
 
+		function logout(){
+			setUser(null);
+			releaseToken();
+		}
 
 		let userCoverImage = currentUser?.cover_image
 			? currentUser?.cover_image
@@ -304,7 +311,15 @@ function Account(){
 																	<li>Kalaymyo, Sagaign, Burma</li>
 															</ul> */}
 
-															<span className="d-block">23 • London, Greater London</span>
+														{/* <span className="d-block">23 • London, Greater London</span> */}
+															
+														<span className="d-block">
+															{user && user.dateOfBirth
+																							? calculateAge(user.dateOfBirth)
+																							: "23" } • { user && user.currentLocation
+																												? `${user.currentLocation.split(",")[0]},
+																													${user.currentLocation.split(",")[2]}`
+																												: "London, Greater London"}</span>
 													</article>
 
 													{ theUserIsTheCurrentUser
@@ -323,7 +338,15 @@ function Account(){
 											</div>
 
 											<div>
-												<hr className="mt-4"/>
+												<hr className="mt-4 cmb-1"/>
+
+												{ theUserIsTheCurrentUser
+														? <div className="text-end position-relative">
+																<img className="custom-icon-lg" alt="more-horizontal-icon" src={moreHorizontalIcon}/>
+															</div>
+														: <div className="">
+															</div> }
+
 												<div className="text-center">"Hey"</div>
 
 												<h6>Photos</h6>
@@ -334,32 +357,45 @@ function Account(){
 												<h6>Vitals</h6>
 												<div className="my-2">
 													<img className="custom-icon-lg me-3" alt="status" src={statusIcon}/>
-													<span>Single Female seeking Males</span>
+													{/* <span>Single Female seeking Males</span> */}
+													<span>{ toTitleCase(user?.overviewInfo?.relationshipStatus) }</span>
 												</div>
 
 												<div className="my-2">
 													<img className="custom-icon-lg me-3" alt="birth-cake" src={birthdayCakeIcon}/>
-													<span>23 (Taurus)</span>
+													{/* <span>23 (Taurus)</span> */}
+													{ user && user.dateOfBirth
+																? calculateAge(user.dateOfBirth)
+																: "" }
 												</div>
 
 												<div className="my-2">
 													<img className="custom-icon-lg me-3" alt="ruler" src={rulerIcon}/>
-													<span>5&apos; 4&quot;(163cm)</span>
+													{/* <span>5&apos; 4&quot;(163cm)</span> */}
+													<span>
+														{ user.bioInfo.height } cm
+														({ cmToFeetAndInches(user.bioInfo.height).feet }&apos; 
+														{ " " + cmToFeetAndInches(user.bioInfo.height).inches }&quot;)
+													</span>
 												</div>
 
 												<div className="my-2">
 													<img className="custom-icon-lg me-3" alt="weight" src={weightIcon}/>
-													<span>155 lbs (70kg)</span>
+													{/* <span>155 lbs (70kg)</span> */}
+													<span>
+														{ user.bioInfo.weight + " lb" + " (" + poundsToKilograms(user.bioInfo.weight).toFixed(2) + " kg)" }
+													</span>
 												</div>
 
-												<div className="my-2">
+												{/* <div className="my-2">
 													<img className="custom-icon-lg me-3" alt="weight" src={bodyIcon}/>
 													<span>Average/medium</span>
-												</div>
+												</div> */}
 
 												<div className="my-2">
 													<img className="custom-icon-lg me-3" alt="weight" src={likeIcon}/>
-													<span>Whatever Excites Me</span>
+													{/* <span>Whatever Excites Me</span> */}
+													<span>{ toTitleCase(user.overviewInfo.sexualOrientation) }</span>
 												</div>
 
 											</div>

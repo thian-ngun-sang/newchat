@@ -5,7 +5,7 @@ import axios from "axios";
 
 import { AppContext } from "../appContext";
 
-import { dashToCamelCase, toUpperCaseWithUnderscores } from "../utils/index";
+import { dashToCamelCase, toUpperCaseWithUnderscores, cmToFeetAndInches, poundsToKilograms } from "../utils/index";
 
 import AuthBridge from "../components/AuthBridge";
 
@@ -133,23 +133,6 @@ const weightList = [
  100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150,
  155, 160, 165, 170, 175, 180, 185, 190, 195, 200
 ];
-
-	function cmToFeetAndInches(cm){
-			// 1 inch is equal to 2.54 centimeters
-			let inches = cm / 2.54
-			
-			// 1 foot is equal to 12 inches
-			let feet = Math.floor(inches / 12)
-			let remaining_inches = Math.round(inches % 12)
-			
-			return { feet, inches: remaining_inches }
-	}
-
-	function poundsToKilograms(pounds){
-			//  1 pound is approximately equal to 0.453592 kilograms
-			let kilograms = pounds * 0.453592;
-			return kilograms
-	}
 
 	// if overviewInfo is already filled,
 	// 	redirect user to '/account/{id}'

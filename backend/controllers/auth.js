@@ -387,15 +387,19 @@ const sendVerificationEmail = async (req, res) => {
 			`,
 	};
 
-	transporter.sendMail(mailOptions, (error, info) => {
-			if (error) {
-					console.log(error);
-					return res.status(500).send('Error sending verification email.');
-			} else {
-					console.log('Email sent: ' + info.response);
-					return res.send('Verification email sent.');
-			}
-	});
+	try{
+		transporter.sendMail(mailOptions, (error, info) => {
+				if (error) {
+						console.log(error);
+						return res.status(500).send('Error sending verification email.');
+				} else {
+						console.log('Email sent: ' + info.response);
+						return res.send('Verification email sent.');
+				}
+		});
+	}catch(error){
+		console.log(error);
+	}
 
 	return res.send('Verification email sent.');
 }

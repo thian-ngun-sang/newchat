@@ -50,7 +50,8 @@ function App() {
               <Route path="/account/edit" element={<EditProfile/>}/>
               <Route path="/account/change-password" element={<ChangePassword/>}/>
               <Route path="/" element={<AppLayout/>}>
-                <Route index path="/" element={<Home/>}/>
+								{/* <Route index path="/" element={<Home/>}/> */}
+                <Route index path="/" element={<Discover/>}/>
                 <Route path="/discover" element={<Discover/>}/>
                 <Route path="/profile/:id" element={<Account/>}/>
                 <Route path="/account/:id" element={<Account/>}/>
