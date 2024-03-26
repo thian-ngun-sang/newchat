@@ -55,6 +55,7 @@ function App() {
                 <Route path="/discover" element={<Discover/>}/>
                 <Route path="/profile/:id" element={<Account/>}/>
                 <Route path="/account/:id" element={<Account/>}/>
+                <Route path="/account/:id/:tab" element={<Account/>}/>
                 <Route path="/users" element={<Users/>}/>
                 <Route path="/user/:id" element={<PeerAccount/>}/>
                 <Route path="/chat" element={<Chat/>}/>

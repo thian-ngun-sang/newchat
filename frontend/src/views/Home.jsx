@@ -23,7 +23,7 @@ function Home(){
     }, []);
 
     return (
-        <div>
+        <div className="app-content">
             <div>
                 <div className="d-flex justify-content-between">
                     <div className="d-flex">

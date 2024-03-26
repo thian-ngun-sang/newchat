@@ -1,23 +1,185 @@
 const { comparePasswords, hashPassword } = require('./auth');
 
+const mongoose = require("mongoose");
+
 const User = require("../models/User");
+const LoveRel = require("../models/LoveRel");
+const AdditionalUserInfo = require("../models/AdditionalUserInfo");
 
 const index = async (req, res) => {
-    const users = await User.find({}, "-__v -password -updated_at");
+		let query = {};
+
+		// exclude current user
+		if(req.query["-current_user_id"]){
+			query = { 
+				...query,
+				_id : {
+					$ne: req.query["-current_user_id"]
+				}
+			};
+		}
+
+    // const users = await User.find(query, "-__v -password -updated_at");
+
+		// const users = await User.aggregate([
+		// 	{
+		// 		$project: {
+		// 			password: 0,
+		// 			updated_at: 0,
+		// 			created_at: 0
+		// 		}
+		// 	},
+		// 	{
+		// 		$match: {
+		// 			_id: {
+		// 				$ne: new mongoose.Types.ObjectId(req.query["-current_user_id"])
+		// 			}
+		// 		}
+		// 	},
+		// 	{ 
+		// 		$lookup: {
+    //        	from: "loverels",
+    //        	localField: "_id",
+    //        	foreignField: "sender",
+    //        	as: "loveRel"
+    //     }
+		// 	},
+		// 	{ 
+		// 		$lookup: {
+    //        	from: "loverels",
+    //        	localField: "_id",
+    //        	foreignField: "receiver",
+    //        	as: "loveRel"
+    //     }
+		// 	}
+		// ]).then(res => res);
+		// console.log(result);
+
+		const users = await User.aggregate([
+			{
+				$project: {
+					password: 0,
+					updated_at: 0,
+					created_at: 0
+				}
+			},
+			{
+				$match: {
+					_id: {
+						$ne: new mongoose.Types.ObjectId(req.query["-current_user_id"])
+					}
+				}
+			},
+			{ 
+				$lookup: {
+           	from: "loverels",
+						pipeline: [
+							{
+								$match: {
+									$or: [
+										{
+											"receiver": new mongoose.Types.ObjectId(req.query["-current_user_id"])
+										},
+										{
+											"sender": new mongoose.Types.ObjectId(req.query["-current_user_id"])
+										}
+									]
+								}
+							}
+						],
+           	as: "loveRel"
+        }
+			},
+			{
+				$set: {
+					'loveRel': { $first: '$loveRel' }
+				}
+			}
+			
+		]).then(res => res);
 
     return res.status(200).json({ msg: "Success", users });
 }
 
 const show = async (req, res) => {
 		const { userid } = req.params;
-    const user = await User.findById(userid, "-__v -password -updated_at");
+    // const user = await User.findById(userid, "-__v -password -updated_at");
+
+		const user = await User.aggregate([
+			{
+				$project: {
+					__v: 0,
+					password: 0,
+					updated_at: 0,
+					created_at: 0
+				}
+			},
+			{
+				$match: {
+					_id: {
+						$eq: new mongoose.Types.ObjectId(userid)
+					}
+				}
+			},
+			{ 
+				$lookup: {
+           	from: "loverels",
+						pipeline: [
+							{
+								$match: {
+									$or: [
+										{
+											"receiver": req.user._id
+										},
+										{
+											"sender": req.user._id
+										}
+									]
+								}
+							}
+						],
+           	as: "loveRel"
+        }
+			}, {
+				$lookup: {
+           	from: "additionaluserinfos",
+						localField: "_id",
+						foreignField: "userId",
+           	as: "additionalUserInfo"
+        }
+			}, {
+				$set: {
+					'loveRel': { $first: '$loveRel' },
+					'additionalUserInfo': { $first: '$additionalUserInfo' }
+				}
+			},
+		]).then(res => res[0]);
 
     return res.status(200).json({ msg: "Success", user });
 }
 
 const account = async (req, res) => {
     const userId = req.user._id.toString();
-    const user = await User.findById(userId, "-__v -password -updated_at");
+    // const user = await User.findById(userId, "-__v -password -updated_at");
+		
+		const user = await User.aggregate([
+			{
+				$project: {
+					__v: 0,
+					password: 0,
+					updated_at: 0,
+					created_at: 0
+				}
+			},{
+				$match: {
+					_id: {
+						$eq: req.user._id
+					}
+				}
+			}
+		]);
+
+		console.log(user, "haha");
 
     return res.status(200).json({ msg: "Success", user });
 }
@@ -32,6 +194,7 @@ const peerAccount = async(req, res) => {
 		return res.status(404).json({ msg: "User not found" });
 	}
 
+	console.log(userid);
 	return res.status(200).json({ user: user });
 }
 
@@ -115,24 +278,57 @@ const updatePassword = async(req, res) => {
 	return res.status(200).json({ msg: "Password changed successfully" });
 }
 
-const updateProfileImage = (req, res) => {
+const updateProfileImage = async (req, res) => {
     const user = req.user;
     const file = req.file;
     
     user.profile_image = file.filename;
     user.save();
-    return res.status(200).json({ msg: "Profile image has been updated", profileImage: user.profile_image });
+
+		let additionalUserInfo = await AdditionalUserInfo.findOne({ userId: user._id });
+		if(!additionalUserInfo){
+			additionalUserInfo = await AdditionalUserInfo.create({
+				userId: user._id.toString(),
+				profileImages: [ user.profile_image ]
+			});
+		}else{
+			if(Array.isArray(additionalUserInfo.profileImages)){
+				additionalUserInfo.profileImages.push(user.profile_image);
+			}else{
+				additionalUserInfo.profileImages = [user.profile_image];
+			}
+			additionalUserInfo.save();
+		}
+
+    return res.status(200).json({ msg: "Profile image has been updated",
+			profileImage: user.profile_image, profileImages: additionalUserInfo.profileImages
+		});
 }
 
-const updateCoverImage = (req, res) => {
+const updateCoverImage = async (req, res) => {
     const user = req.user;
     const file = req.file;
 
     user.cover_image = file.filename;
-		console.log(file.filename);
+
+		let additionalUserInfo = await AdditionalUserInfo.findOne({ userId: user._id });
+		if(!additionalUserInfo){
+			additionalUserInfo = await AdditionalUserInfo.create({
+				userId: user._id.toString(),
+				coverImages: [ user.cover_image ]
+			});
+		}else{
+			if(Array.isArray(additionalUserInfo.coverImages)){
+				additionalUserInfo.coverImages.push(user.cover_image);
+			}else{
+				additionalUserInfo.coverImages = [user.cover_image];
+			}
+			additionalUserInfo.save();
+		}
 
     user.save();
-    return res.status(200).json({ msg: "Cover image has been updated", coverImage: user.cover_image });
+    return res.status(200).json({ msg: "Cover image has been updated",
+			coverImage: user.cover_image, coverImages: additionalUserInfo.coverImages });
 }
 
 const addMoreAboutUser = (req, res) => {
@@ -153,8 +349,6 @@ const addBioInfo = (req, res) => {
 		const user = req.user;
 		const { height, weight } = req.body;
 
-		console.log(height);
-	
 		user.bioInfo = { height, weight };
 		user.save()
     return res.status(200).json({ msg: "Success" });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useContext } from "react";
-import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation, Link } from "react-router-dom";
 
 import axios from "axios";
 
@@ -23,6 +23,8 @@ function SingleChat(){
     const [chatComponentsState, setChatComponentsState] = useState([]);
     const [peerUserList, setPeerUserList] = useState([]);
     const [chats, setChats] = useState([]);
+
+		const [autoScrollState, setAutoScrollState] = useState(true);
 
     const navigate = useNavigate();
     const routeParams = useParams();
@@ -187,7 +189,40 @@ function SingleChat(){
 
     // handle auto scroll
     useEffect(() => {
-        chatMessagesRef.current.scroll(0, chatMessagesRef.current.scrollHeight);
+        // chatMessagesRef.current.scroll(0, chatMessagesRef.current.scrollHeight);
+				const body = document.querySelector("body");
+				if(autoScrollState){
+					window.scroll(0, body.scrollHeight);
+					// body.scroll(0, chatMessagesRef.current.scrollHeight);
+				}
+
+				return () => {
+					window.scroll(0, 0);
+				}
+
+				// let lastScrollTop = 0;
+				// let count = 0;
+				// window.addEventListener('scroll', function() {
+				// 	const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+				// 	if (currentScroll > lastScrollTop) {
+				// 		// Scroll down
+				// 		// console.log("scroll down");
+				// 		if(count >= 5 && !autoScrollState){
+				// 			setAutoScrollState(true);
+				// 		}
+				// 	} else {
+				// 		// Scroll up
+				// 		// console.log("scroll up");
+				// 		if(count >= 20 && autoScrollState){
+				// 			setAutoScrollState(false);
+				// 			count = 0;
+				// 		}
+				// 		count += 1;
+				// 	}
+				// 	lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // For Mobile or negative scrolling
+				// });
+
     }, [chatComponentsState.length]);
 
     // update ui when new chat contents are created
@@ -268,25 +303,31 @@ function SingleChat(){
 
     return (
         <div className="chat-app">
-            <div className="chat-session-banner fixed-to-app-layout pb-1">
-                <img src={backIcon} alt="icon" onClick={stepBack} className="custom-icon-xl mx-1 mb-1"/>
-                <div className="d-flex justify-content-between mt-1">
-                    <div className="d-flex align-items-center">
-                        <img src={generateChatImageUrl(peerUserList)} alt="profile" className="chat-user-item mx-1"/>
-                        {
-                            peerUserList.length > 0 &&
-                            <div className="ms-2">{ peerUserList[0].first_name } { peerUserList[0].last_name }</div>
-                        }
-                    </div>
-                    <div>
-                        <img src={phoneIcon} alt={phoneIcon} className="custom-icon-xl mx-1"/>
-                        <img src={videoCameraIcon} alt={videoCameraIcon} className="custom-icon-xl mx-1"/>
-                        <img src={infoIcon} alt={infoIcon} className="custom-icon-xl mx-1"/>
-                    </div>
-                </div>
-            </div>
+						<div className="chat-session-banner-ctn fixed-to-app-layout">
+							<div className="chat-session-banner pb-1">
+									<img src={backIcon} alt="icon" onClick={stepBack} className="custom-icon-xl mx-1 mb-1"/>
+									<div className="d-flex justify-content-between mt-1">
+											<div className="d-flex align-items-center">
+													<Link to={ "/account/" + peerUserList[0]?._id } className="text-decoration-none">
+														<img src={generateChatImageUrl(peerUserList)} alt="profile" className="chat-user-item mx-1"/>
+													</Link>
+
+													<Link to={ "/account/" + peerUserList[0]?._id } className="text-decoration-none text-dark">
+														{ peerUserList.length > 0 &&
+															<div className="ms-2">{ peerUserList[0].first_name } { peerUserList[0].last_name }</div> }
+													</Link>
+											</div>
+											<div>
+													<img src={phoneIcon} alt={phoneIcon} className="custom-icon-xl mx-1"/>
+													<img src={videoCameraIcon} alt={videoCameraIcon} className="custom-icon-xl mx-1"/>
+													<img src={infoIcon} alt={infoIcon} className="custom-icon-xl mx-1"/>
+											</div>
+									</div>
+							</div>
+						</div>
             <div className="chat-messages-ctn" ref={chatMessagesRef}>
                     { chatComponentsState }
+										{ !chatComponentsState.length && <div className="text-center">New chat box</div> }
                 {/* <div className="text-end">
                     <span className="bg-primary text-item">
                         Ziang tuah

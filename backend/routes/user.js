@@ -9,7 +9,7 @@ const router = express.Router();
 router.route("/users").get(index);
 router.route("/users/:userid").get(show);
 router.route("/account").get(account);
-router.route("/account/:userid").get(peerAccount);
+router.route("/account/:userid").get(show);
 router.route("/update/account").post(updateAccount);
 router.route("/update/password").patch(updatePassword);
 router.route("/add-overview-info").post(addMoreAboutUser);

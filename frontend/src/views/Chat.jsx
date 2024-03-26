@@ -102,7 +102,7 @@ function Chat(){
 		}, [usersState.chatboxes]);
 
     return (
-        <div className="chat--view">
+        <div className="app-content">
             <div className="chat-navbar">
                 <div className="d-flex pt-3 ps-3">
 										<h5>Chats</h5>

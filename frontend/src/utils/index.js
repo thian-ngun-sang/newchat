@@ -8,6 +8,10 @@ export function toUpperCaseWithUnderscores(inputString) {
 }
 
 export function toTitleCase(str) {
+	if(!str){
+		return "";
+	}
+
   // Split the string by underscores
   let words = str.split('_');
   
@@ -32,7 +36,7 @@ export function validateImage(filename){
 }
 
 export function generateProfileImageUri(filename, gender){
-		if(/[a-zA-Z0-9\[\]]+\.(jpg)|(jpeg)|(webp)/.test(filename)){
+		if(filename && /[a-zA-Z0-9\[\]]+\.(jpg)|(jpeg)|(webp)/.test(filename)){
 				return `user/profileImages/${filename}` 
 		}else{
 				if(gender === "male"){

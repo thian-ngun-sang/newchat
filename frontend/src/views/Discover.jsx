@@ -19,10 +19,10 @@ function Discover(){
     const { user } = context;
 
     useEffect(() => {
-        axios.get("/api/v1/user/users")
+        axios.get(`/api/v1/user/users?-current_user_id=${user._id}`)
             .then(res => {
                 const { users } = res.data;
-								// console.log(users);
+	
                 const userComponents = users.map((_user, index) => {
 										if(_user._id === user._id){
 											return;
@@ -36,12 +36,19 @@ function Discover(){
     }, []);
 
     return (
-        <div>
+        <div className="app-content">
 					<div className="text-center cmb-3">
-						<h3>Find someone</h3>
+						<h3>Find someone to love</h3>
 					</div>
 					<div className="discover--user-list">
-						{ usersState }
+					{ usersState }
+					{ usersState }
+					{ usersState }
+					{ usersState }
+					{ usersState }
+					{ usersState.length < 2 && <div></div> }
+					{ usersState.length < 3 && <div></div> }
+					
 					</div>
         </div>
     );

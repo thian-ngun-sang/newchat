@@ -83,7 +83,7 @@ function ChangePassword(){
 										{ isSubmitted && userData.confirmPassword === ""
 											&& <small className="text-danger">Confirm password cannot be null</small> }
                 </div>
-                <div className="text-end c-mt-3">
+                <div className="text-end cmt-3">
                     <button className="custom-button-green">Update</button>
                 </div>
 								{ httpErrorMessage !== ""

@@ -15,8 +15,8 @@ function ChatItem({users, chatboxId, lastMessage}){
 		if(users.length === 0){
 			return;
 		}
+
     let user = users[0];
-    
 		let chatUserProfileUrl;
 		if(validateImage(user.profile_image)){
 			chatUserProfileUrl = `${baseUrl}/user/profileImages/${user.profile_image}`;
@@ -33,9 +33,11 @@ function ChatItem({users, chatboxId, lastMessage}){
     return (
         <li>
             <div className="d-flex my-3 mx-2">
-            	<img className="chat-user-item" alt="chat-tem" src={chatUserProfileUrl}/>
+							<Link to={ "/account/" + user._id } className="text-decoration-none">
+								<img className="chat-user-item" alt="chat-tem" src={chatUserProfileUrl}/>
+							</Link>
 
-							<Link to={ "/chat/" + chatboxId } className="text-decoration-none text-dark">
+							<Link to={ "/chat/" + chatboxId } className="text-decoration-none text-dark flex-grow-1">
 									<div className="ms-2">
 											<small className="d-block">{ user.first_name } { user.last_name }</small>
 											<small className={ hadReadLastMessage ? 'd-block' : 'd-block chat--new-message'}>

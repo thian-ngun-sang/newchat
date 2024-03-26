@@ -38,6 +38,9 @@ const User = mongoose.Schema({
         type: String,
         maxlength: [20, "Gender cannot be longer than 20 characters"],
     },
+    greeting: {
+        type: String
+    },
 		dateOfBirth: {
 				type: String
 		},

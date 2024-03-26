@@ -6,7 +6,7 @@ function AppLayout(){
     return (
         <div className="app-layout">
             <Navbar/>
-            <div className="app-content">
+            <div> 
                 <Outlet/>
             </div>
         </div>

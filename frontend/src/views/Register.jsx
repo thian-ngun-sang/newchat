@@ -32,10 +32,6 @@ function Register(){
 	const [formStep, setFormStep] = useState(1);
 	const navigate = useNavigate();
 
-	useEffect(() => {
-		// getLocation();
-	}, []);
-
 	function getVerificationCode(){
 		axios.post("/api/auth/send-verification-email", { email: userData.email })
 			.then(res => {
@@ -192,6 +188,8 @@ function Register(){
 					.then(data => {
 						if (data.results && data.results.length > 0) {
 							const result = data.results[0];
+							console.log(result);
+
 							const country = result.components.country;
 							const state = result.components.state;
 							const city = result.components.city || result.components.town;
