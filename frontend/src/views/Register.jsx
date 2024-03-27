@@ -1,4 +1,4 @@
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 
@@ -27,7 +27,7 @@ function Register(){
 	const [locationIsFetching, setLocationIsFetching] = useState(false);
 
 	const context =  useContext(AppContext);
-	const { user, storeToken } = context;
+	const { user } = context;
 
 	const [formStep, setFormStep] = useState(1);
 	const navigate = useNavigate();
@@ -124,7 +124,6 @@ function Register(){
 					.then(response => {
 							const { token } = response.data;
 							if(token){
-								// storeToken(token);
 								localStorage.setItem("token", token);
 								navigate("/add-photo");
 							}
@@ -234,10 +233,6 @@ function Register(){
 					console.log(response.data);
 					setHttpErrorMessage("");
 					nextStep();
-					// const { token } = response.data;
-					// if(token !== null && token !== ""){
-					// 		storeToken(token);
-					// }
 			})
 			.catch(error => {
 					console.log(error);
@@ -268,11 +263,9 @@ function Register(){
 			setFormStep(prev => prev - 1);
 		}
 
-		useEffect(() => {
-			if(Object.keys(user).length !== 0){
-				navigate(`/account/${user._id}`);
-			}
-		}, []);
+		if(Object.keys(user).length !== 0){
+			navigate(`/account/${user._id}`);
+		}
 
     return (
         <div className="mt-5 auth-layout">

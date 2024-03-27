@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Chatbox = require("../models/Chatbox");
 const ChatItem = require("../models/ChatItem");
+const BlackListRel = require("../models/BlackListRel");
 
 const getUserInfo = async (req, res) => {
     const params = req.params;
@@ -11,31 +12,39 @@ const getUserInfo = async (req, res) => {
 }
 
 const getChatMembers = async (req, res) => {
-    const params = req.params;
-    const { id } = params;
-    let users = [];
+    const { id } = req.params;
+		const user = req.user;
+		let blackListRel;
 
-    const currentUser = req.user;
-    let { _id } = currentUser;
-    let currentUserId = _id.toString();
+		// chatbox = await Chatbox.findOne({_id: id}).populate("users", "first_name last_name profile_image gender");
+		let chatbox = await Chatbox.findOne({_id: id}).populate({
+			path: "users",
+			select: "first_name last_name profile_image gender",
+			match: {
+				_id: { $ne: user._id }
+			}
+		});
 
-    try{
-        const chatbox = await Chatbox.findOne({_id: id}).populate("users", "first_name last_name profile_image gender");
-        if(chatbox !== null && chatbox !== undefined){
-            let { users: userObjectsArray } = chatbox;
+		if(!chatbox){
+			return res.status(404).json({ msg: "Chatbox not found" });
+		}
 
-            // filter out current user id
-            userObjectsArray = userObjectsArray.filter(item => {
-                return item._id.toString() !== currentUserId;
-            })
+		if(chatbox.type === "ONE_TO_ONE"){
+			if(Array.isArray(chatbox.users)){
 
-            users = userObjectsArray;
-        }
-    }catch(err){
-        console.log(err);
-    }
+				blackListRel = await BlackListRel.findOne({
+					$or: [
+						{ "sender": chatbox.users[0]._id,
+							"receiver": user },
+						{ "sender": user,
+							"receiver": chatbox.users[0]._id }
+					]
+				});
 
-    return res.status(200).json({msg: "Success", users});
+			}
+		}
+
+    return res.status(200).json({ msg: "Success", chatbox, blackListRel });
 }
 
 const getChatboxId = async (req, res) => {
@@ -98,8 +107,6 @@ const browseChatBox = async (req, res) => {
 
     let newChatboxes = [];
     for(let i = 0; i < chatBoxes.length; i++){
-				console.log(chatBoxes[i]);
-
         const lastMessage= await ChatItem.findOne({
             chatboxId: chatBoxes[i]._id.toString()
         }, "user message viewers"
@@ -122,11 +129,9 @@ const browseChatContents = async (req, res) => {
     const user = req.user;
     const { id } = req.params;
 
-    // const chatContents = await ChatItem.find({chatboxId: id}).populate("userId", "first_name last_name profile_image gender").populate("user", "first_name last_name profile_image gender");
-
     const chatContents = await ChatItem.find({chatboxId: id}).populate("user", "first_name last_name profile_image gender");
 
-    return res.status(200).json({msg: "Chat contents", chatContents: chatContents, currentUser: user});
+    return res.status(200).json({ msg: "Chat contents", chatContents: chatContents });
 }
 
 const sendMessage = async (req, res) => {

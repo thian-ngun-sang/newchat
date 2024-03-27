@@ -12,6 +12,10 @@ const ChatboxSchema = mongoose.Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: "User"
     },
+		type: {
+			type: String,
+			default: "ONE_TO_ONE"
+		},
     created_at: {
         type: Date,
         default: new Date()

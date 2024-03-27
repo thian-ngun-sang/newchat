@@ -1,15 +1,16 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { NavLink } from "react-router-dom";
 
 import searchIcon from "../assets/icons/svgs/search.svg";
-import { useEffect } from "react";
+// import { useEffect } from "react";
 
 import { AppContext } from "../appContext";
 
 function Navbar(){
     const context = useContext(AppContext);
-    const { user, webSocket } = context;
-    const [newChatContents, setNewChatContents] = useState([]);
+    // const { user, webSocket } = context;
+    const { user } = context;
+    // const [newChatContents, setNewChatContents] = useState([]);
 
     return (
         <div className="app-nav fixed-to-app-layout">

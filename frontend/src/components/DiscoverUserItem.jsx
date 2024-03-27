@@ -7,11 +7,11 @@ import { calculateAge } from "../utils/index";
 
 import { AppContext } from "../appContext";
 
-import loveDefault from "../assets/icons/svgs/love__solid.svg";
-import loveSent from "../assets/icons/svgs/love__sent.svg";
-import loveReceived from "../assets/icons/svgs/love__received.svg";
-import loveBroken from "../assets/icons/svgs/love__broken.svg";
-import loveCouple from "../assets/icons/svgs/love__couple.svg";
+// import loveDefault from "../assets/icons/svgs/love__solid.svg";
+// import loveSent from "../assets/icons/svgs/love__sent.svg";
+// import loveReceived from "../assets/icons/svgs/love__received.svg";
+// import loveBroken from "../assets/icons/svgs/love__broken.svg";
+// import loveCouple from "../assets/icons/svgs/love__couple.svg";
 
 
 import commentIcon from "../assets/icons/svgs/comment__solid.svg";

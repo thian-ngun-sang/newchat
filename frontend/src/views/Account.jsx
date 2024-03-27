@@ -9,6 +9,7 @@ import { cmToFeetAndInches, poundsToKilograms, toTitleCase, calculateAge, genera
 import Loading from "../components/Loading";
 import CustomLink from "../components/CustomLink";
 import MediaViewer from "../components/MediaViewer";
+import AccountOptionOne from "../components/AccountOptionOne";
 
 // import cameraIcon from "../assets/icons/svgs/camera-plus.svg";
 import cameraIcon from "../assets/icons/svgs/white-camera.svg";
@@ -20,10 +21,10 @@ import statusIcon from "../assets/icons/svgs/status.svg";
 import birthdayCakeIcon from "../assets/icons/svgs/birthday-cake.svg";
 import rulerIcon from "../assets/icons/svgs/ruler.svg";
 import weightIcon from "../assets/icons/svgs/weight.svg";
-import bodyIcon from "../assets/icons/svgs/body.svg";
+// import bodyIcon from "../assets/icons/svgs/body.svg";
 import likeIcon from "../assets/icons/svgs/like.svg";
 
-import img1 from "../assets/images/posts/background05.jpeg";
+// import img1 from "../assets/images/posts/background05.jpeg";
 
 import { AppContext } from "../appContext";
 
@@ -32,7 +33,7 @@ const imageTypes = ["image/jpeg", "image/png"];
 
 function Account(){
     const context = useContext(AppContext);
-    const { user, setUser, releaseToken, baseUrl, calculateAge } = context;
+    const { user, baseUrl } = context;
 
     const routeParams = useParams();
 		const navigate = useNavigate();
@@ -64,23 +65,35 @@ function Account(){
 			currentIndex: 0
 		});
 
-		const accountOptionRef = useRef(null);
+		// const accountOptionRef = useRef(null);
 		const accountEllipsisRef = useRef(null);
 		const location = useLocation();
 
-    const accountOption = (<div className="position-absolute account-option-list" ref={accountOptionRef}>
-        <ul className="custom-list">
-            <li>
-                <Link className="custom-link" to="/account/edit">Edit Profile</Link>
-            </li>
-            <li>
-                <Link className="custom-link" to="/account/change-password">Change Password</Link>
-            </li>
-            <li>
-                <span className="link-like-btn" onClick={logout}>Logout</span>
-            </li>
-        </ul>
-    </div>);
+    // const accountOption = (<div className="position-absolute account-option-list" ref={accountOptionRef}>
+		// 				{ theUserIsTheCurrentUser && <ul className="custom-list">
+		// 						<li>
+		// 								<Link className="custom-link" to="/account/edit">Edit Profile</Link>
+		// 						</li>
+		// 						<li>
+		// 								<Link className="custom-link" to="/account/change-password">Change Password</Link>
+		// 						</li>
+		// 						<li>
+		// 								<span className="link-like-btn" onClick={logout}>Logout</span>
+		// 						</li>
+		// 				</ul> }
+
+		// 				{ !theUserIsTheCurrentUser && <ul className="custom-list">
+		// 						{ !currentUser?.blackListRel && <li>
+		// 								<span className="link-like-btn" onClick={blockUser}>Block this user</span>
+		// 						</li> }
+
+		// 						{ currentUser?.blackListRel && <li>
+		// 							{ currentUser?.blackListRel?.sender &&
+		// 								<span className="link-like-btn" onClick={unblockUser}>Unblock this user</span> }
+		// 						</li> }
+		// 				</ul> }
+    //     
+    // </div>);
 
     const reader = new FileReader();
     function validateAndSaveImage(arg){
@@ -131,35 +144,15 @@ function Account(){
         // }
     }
 
-		function mousedownOutsideAccountOption(event){
-
-			// if accountOptionRef.current is not null and accountOptionRef.current does not contain target
-			// 	and accountEllipsisRef.current is not null and accountEllipsisRef.current does not contain target
-			if(accountOptionRef.current && !accountOptionRef.current.contains(event.target)
-				&& accountEllipsisRef.current && !accountEllipsisRef.current.contains(event.target)){
-				// console.log("Clicked outside accountOptionRef and accountEllipsisRef");
-
-				setEditOptionState(false);
-				document.removeEventListener("mousedown", mousedownOutsideAccountOption);
-
-			}else if(accountEllipsisRef.current && accountEllipsisRef.current.contains(event.target)){
-				// if accountEllipsisRef.current is not null and accountEllipsisRef.current contains target
-				document.removeEventListener("mousedown", mousedownOutsideAccountOption);
-			}else if(!accountOptionRef.current){
-				document.removeEventListener("mousedown", mousedownOutsideAccountOption);
-			}
-
-			// console.log("Clicked outside");
-		}
-
     function openAccountOption(){
         setEditOptionState(prev => !prev);
 
 				// this function can not have the current value of editOptionState,
 				// 		but only it's old state, so the procedure is reversed
-				if(!editOptionState){
-					document.addEventListener("mousedown", mousedownOutsideAccountOption);
-				}
+
+				// if(!editOptionState){
+				// 	document.addEventListener("mousedown", mousedownOutsideAccountOption);
+				// }
     }
 
     function updateProfileImage(){
@@ -252,6 +245,7 @@ function Account(){
 				axios.get(`/api/v1/user/account/${id}`)
 						.then(res => {
 								const { user } = res.data;
+								// console.log(user);
 
 								if(user){
 									setCurrentUser(user);
@@ -264,6 +258,7 @@ function Account(){
 					axios.get(`/api/v1/user/account/${id}`)
 							.then(res => {
 									const { user } = res.data;
+									// console.log(user);
 
 									if(user){
 										setCurrentUser(user);
@@ -272,7 +267,7 @@ function Account(){
 							.catch(err => console.log(err.response));
 				}
 
-    }, [id]);
+    }, [user._id, id]);
 
     useEffect(() => {
 				if(!theUserIsTheCurrentUser){
@@ -285,10 +280,10 @@ function Account(){
 				}
     }, [theUserIsTheCurrentUser, id]);
 
-		function logout(){
-			setUser(null);
-			releaseToken();
-		}
+		// function logout(){
+		// 	setUser(null);
+		// 	releaseToken();
+		// }
 
 		let userCoverImage = currentUser?.cover_image
 			? currentUser?.cover_image
@@ -305,11 +300,8 @@ function Account(){
 				receiver: currentUser._id.toString()
 			}
 			
-			console.log(formData);
-
 			axios.post(`/api/v1/love-rel/create`, formData)
 				.then(res => {
-					console.log(res.data);
 					const { loveRel } = res.data;
 					if(!loveRel){
 						return;
@@ -319,30 +311,6 @@ function Account(){
 						return {
 							...prev,
 							loveRel: loveRel
-						}
-					});
-				})
-				.catch(err => {
-					console.log(err?.response?.data);
-				});
-		}
-
-		function cancelLove(){
-			if(!currentUser.loveRel){
-				return;
-			}
-
-			const formData = {
-				sender: currentUser.loveRel.sender,
-				receiver: currentUser.loveRel.receiver
-			}
-
-			axios.post(`/api/v1/love-rel/delete`, formData)
-				.then(res => {
-					setCurrentUser(prev => {
-						return {
-							...prev,
-							loveRel: null
 						}
 					});
 				})
@@ -371,7 +339,6 @@ function Account(){
 		function closeInlovePopup(){
 			setInlovePopupState(false);
 		}
-
 		
 		// return -> { loveRel: {} }
 		// throw error
@@ -451,7 +418,7 @@ function Account(){
 			}
 
 			try{
-				const res = await axios.post(`/api/v1/love-rel/delete`, formData)
+				await axios.post(`/api/v1/love-rel/delete`, formData)
 			}catch(error){
 				console.log(error);
 				throw new Error(error);
@@ -509,6 +476,55 @@ function Account(){
 			});
 		}
 
+		// function blockUser(){
+		// 	if(!currentUser?._id){
+		// 		return;
+		// 	}
+
+		// 	const formData = {
+		// 		sender: user._id.toString(),
+		// 		receiver: currentUser._id.toString()
+		// 	}
+		// 	
+		// 	axios.post(`/api/v1/black-list-rel/create`, formData)
+		// 		.then(res => {
+		// 			const { blackListRel } = res.data;
+
+		// 			if(!blackListRel){
+		// 				return;
+		// 			}
+
+		// 			console.log(blackListRel);
+		// 		})
+		// 		.catch(err => {
+		// 			console.log(err?.response?.data);
+		// 		});
+		// }
+
+		// function unblockUser(){
+		// 	if(!currentUser?._id){
+		// 		return;
+		// 	}
+
+		// 	const formData = {
+		// 		sender: user._id.toString(),
+		// 		receiver: currentUser._id.toString()
+		// 	}
+		// 	
+		// 	axios.post(`/api/v1/black-list-rel/delete`, formData)
+		// 		.then(res => {
+		// 			setCurrentUser(prev => {
+		// 				return {
+		// 					...prev,
+		// 					blackListRel: null
+		// 				}
+		// 			});
+		// 		})
+		// 		.catch(err => {
+		// 			console.log(err?.response?.data);
+		// 		});
+		// }
+
 		function getUserLastProfilePicture(_user){
 			if(!Array.isArray(_user?.additionalUserInfo?.profileImages)){
 				return;
@@ -556,6 +572,12 @@ function Account(){
 		if(!currentUser){
 			return <Loading/>;
 		}
+
+		// if(currentUser?.blackListRel?.receiver === user._id.toString()){
+		// 	return <div className="app-content pt-5 text-center">
+		// 			<h3>This user added you to blacklist</h3>
+		// 		</div>;
+		// }
 
     return (
             <div className="app-content">
@@ -628,7 +650,13 @@ function Account(){
 																<img className="custom-icon-lg mt-2" ref={accountEllipsisRef}
 																	alt="more-horizontal-icon" onClick={openAccountOption}
 																	src={moreHorizontalIcon}/>
-																{ editOptionState && accountOption }
+
+																{/* { editOptionState && accountOption } */}
+																{ editOptionState &&
+																		<AccountOptionOne currentUser={currentUser} setCurrentUser={setCurrentUser}
+																			theUserIsTheCurrentUser={theUserIsTheCurrentUser}
+																			accountEllipsisRef={accountEllipsisRef}
+																			setEditOptionState={setEditOptionState}/> }
 															</div>
 														: <div className="flex-shrink-1">
 																<div className="d-flex flex-wrap gap-2 justify-content-end mt-3">
@@ -660,6 +688,21 @@ function Account(){
 																				Send Message
 																			</Link>
 																	</span>
+
+																	<div className="text-end position-relative border px-1">
+																		<img className="custom-icon-lg" ref={accountEllipsisRef}
+																			alt="more-horizontal-icon" onClick={openAccountOption}
+																			src={moreHorizontalIcon}/>
+
+																		{/* { editOptionState && accountOption } */}
+																		{ editOptionState &&
+																				<AccountOptionOne currentUser={currentUser} setCurrentUser={setCurrentUser}
+																					theUserIsTheCurrentUser={theUserIsTheCurrentUser}
+																					accountEllipsisRef={accountEllipsisRef}
+																					setEditOptionState={setEditOptionState}/> }
+
+																	</div>
+
 																</div>
 														</div> }
 
@@ -724,7 +767,7 @@ function Account(){
 													<div className="d-flex flex-wrap gap-1 mt-4 mb-5">
 
 															{ currentUser?.additionalUserInfo?.profileImages.map((item, index) => {
-																return <img className="account--img-list-item cursor-pointer"
+																return <img className="account--img-list-item cursor-pointer" alt="account-profiles"
 																		src={baseUrl + "/user/profileImages/" + item}
 																		onClick={() => openMediaViewer("user/profileImages",
 																		currentUser?.additionalUserInfo.profileImages, index) }/>;
@@ -737,7 +780,7 @@ function Account(){
 													<div className="d-flex flex-wrap gap-1 mt-4 mb-5">
 
 															{ currentUser?.additionalUserInfo?.coverImages.map((item, index) => {
-																return <img className="account--img-list-item cursor-pointer"
+																return <img className="account--img-list-item cursor-pointer" alt="account-covers"
 																	src={baseUrl + "/user/coverImages/" + item}
 																	onClick={ () => openMediaViewer(
 																		"user/coverImages", currentUser.additionalUserInfo.coverImages, index
@@ -775,7 +818,7 @@ function Account(){
 															<img className="custom-icon-lg me-3" alt="weight" src={weightIcon}/>
 															{/* <span>155 lbs (70kg)</span> */}
 															<span>
-																{ currentUser.bioInfo.weight + " lb" + " (" + poundsToKilograms(currentUser.bioInfo.weight).toFixed(2) + " kg)" }
+																{ `${currentUser.bioInfo.weight} lb (${poundsToKilograms(currentUser.bioInfo.weight).toFixed(2)} kg)` }
 															</span>
 														</div> }
 

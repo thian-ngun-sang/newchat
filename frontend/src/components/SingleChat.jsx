@@ -24,6 +24,9 @@ function SingleChat(){
     const [peerUserList, setPeerUserList] = useState([]);
     const [chats, setChats] = useState([]);
 
+		const [chatboxType, setChatboxType] = useState("ONE_TO_ONE");
+		const [blackListRel, setBlackListRel] = useState(null);
+
 		const [autoScrollState, setAutoScrollState] = useState(true);
 
     const navigate = useNavigate();
@@ -89,8 +92,7 @@ function SingleChat(){
             }
             
             const chatComponents = chatContents.map((chatContent, index) => {
-								// console.log(chatContent?.userId?._id);
-                const chatContentUserId = chatContent.user._id;
+                // const chatContentUserId = chatContent.user._id;
 
                 return <ChatContent peerUserList={ peerUserList } chatContent={chatContent} key={index}/>
             });
@@ -149,14 +151,41 @@ function SingleChat(){
         }
     }
 
+		function unblockUser(userId){
+			if(!userId){
+				return;
+			}
+
+			const formData = {
+				sender: user._id.toString(),
+				receiver: userId
+			}
+			
+			axios.post(`/api/v1/black-list-rel/delete`, formData)
+				.then(res => {
+					// console.log(res.data);
+					setBlackListRel(null);
+				})
+				.catch(err => {
+					console.log(err?.response?.data);
+				});
+		}
+
 		// fetch chat members and 'mapChatContents' function only works when 'peerUserList' state is ready 
 		useEffect(() => {
 			if(chatboxId !== "new"){
 				axios.get(`/api/v1/chat/members/${chatboxId}`)
 					.then(res => {
-							const { users } = res.data;
-							if(users !== null && users !== undefined){
-									setPeerUserList(users);
+							const { chatbox } = res.data;
+
+							if(chatbox && chatbox.type){
+								setChatboxType(chatbox.type);
+								const { blackListRel: _blackListRel } = res.data;
+								setBlackListRel(_blackListRel);
+							}
+
+							if(chatbox.users){
+								setPeerUserList(chatbox.users);
 							}
 					})
 					.catch(err => console.log(err));
@@ -164,13 +193,14 @@ function SingleChat(){
 				axios.get(`/api/v1/chat/users/${userId}`)
 					.then(res => {
 						const { user } = res.data;
+
 						if(user !== null && user !== undefined){
 							setPeerUserList([user]);
 						}
 					})
 					.catch(err => console.log(err));
         }
-		}, []);
+		}, [0]);
 
 
 		// fetch chat contents
@@ -185,7 +215,7 @@ function SingleChat(){
 						})
 						.catch(err => console.log(err));
 				}
-		}, [peerUserList, location]);
+		}, [peerUserList, location, chatboxId]);
 
     // handle auto scroll
     useEffect(() => {
@@ -229,7 +259,6 @@ function SingleChat(){
     useEffect(() => {
         if(chats !== null){
 						// console.log(chats);
-						// console.log(chats);
             mapChatContents(chats, peerUserList);
         }
     }, [chats]);
@@ -247,7 +276,6 @@ function SingleChat(){
 					}
 
 					// if the current user is NOT included in the viewers array
-					// if(!viewers.some(curr => { return curr.toString() === user._id.toString() })){
 					if(!viewers.includes(user._id.toString())){
 						try{
 							const result = await axios.post(`/api/v1/chat/add-chat-item-viewer/${_id}`)
@@ -347,8 +375,25 @@ function SingleChat(){
                 </div> */}
             </div>
 						{/* <div className="chat-input-ctn fixed-to-app-layout"> */}
+
             <div className="chat-input-ctn">
-                <div className="chat-input-layout">
+
+								{ chatboxType === "ONE_TO_ONE" && blackListRel && blackListRel.sender === user._id
+									&& <div className="chat-input-layout">
+										<div className="chat-input-btn-ctn">
+											<button className="link-like-btn text-white"
+												onClick={() => unblockUser(blackListRel.receiver)}>
+													Unblock this user
+											</button>
+										</div>
+									</div> }
+
+								{ chatboxType === "ONE_TO_ONE" && blackListRel && blackListRel.receiver === user._id
+									&& <div className="chat-input-layout">
+											<span className="text-white">The user blocked you</span>
+										</div> }
+								
+								{ !blackListRel && <div className="chat-input-layout">
                     <div className="chat-input-btn-ctn ms-2">
                         <img src={cameraIcon} alt={cameraIcon} className="custom-icon chat-input-btn"/>
                     </div>
@@ -362,7 +407,8 @@ function SingleChat(){
                     <div className="chat-input-btn-ctn me-2">
                         <button className="chat-input-send-btn" onClick={sendMessage}>Send</button>
                     </div>
-                </div>
+                </div> }
+
             </div>
         </div>
     );

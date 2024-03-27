@@ -90,6 +90,26 @@ const index = async (req, res) => {
            	as: "loveRel"
         }
 			},
+			{ 
+				$lookup: {
+           	from: "blacklistrels",
+						pipeline: [
+							{
+								$match: {
+									$or: [
+										{
+											"receiver": new mongoose.Types.ObjectId(req.query["-current_user_id"])
+										},
+										{
+											"sender": new mongoose.Types.ObjectId(req.query["-current_user_id"])
+										}
+									]
+								}
+							}
+						],
+           	as: "blacklistrel"
+        }
+			},
 			{
 				$set: {
 					'loveRel': { $first: '$loveRel' }
@@ -140,7 +160,30 @@ const show = async (req, res) => {
 						],
            	as: "loveRel"
         }
-			}, {
+			},
+			{ 
+				$lookup: {
+           	from: "blacklistrels",
+						pipeline: [
+							{
+								$match: {
+									$or: [
+										{
+											"sender": new mongoose.Types.ObjectId(userid),
+											"receiver": req.user._id
+										},
+										{
+											"sender": req.user._id,
+											"receiver": new mongoose.Types.ObjectId(userid)
+										}
+									]
+								}
+							}
+						],
+           	as: "blacklistrel"
+        }
+			},
+			{
 				$lookup: {
            	from: "additionaluserinfos",
 						localField: "_id",
@@ -150,6 +193,7 @@ const show = async (req, res) => {
 			}, {
 				$set: {
 					'loveRel': { $first: '$loveRel' },
+					'blackListRel': { $first: '$blacklistrel' },
 					'additionalUserInfo': { $first: '$additionalUserInfo' }
 				}
 			},

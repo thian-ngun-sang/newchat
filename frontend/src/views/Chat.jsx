@@ -1,5 +1,4 @@
 import { useEffect, useReducer, useContext, useRef } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
 
 import ChatItem from "../components/ChatItem";
@@ -9,7 +8,7 @@ import { AppContext } from "../appContext";
 
 function Chat(){
     const context = useContext(AppContext);
-    const { user, webSocket } = context;
+    const { webSocket } = context;
 		const chatboxesRef = useRef([]);
 
     const initialUsers = {

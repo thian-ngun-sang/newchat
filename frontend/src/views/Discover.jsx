@@ -22,10 +22,11 @@ function Discover(){
         axios.get(`/api/v1/user/users?-current_user_id=${user._id}`)
             .then(res => {
                 const { users } = res.data;
+								console.log(users);
 	
                 const userComponents = users.map((_user, index) => {
 										if(_user._id === user._id){
-											return;
+											return null;
 										}
 
                     return <DiscoverUserItem key={index} _user={ _user }/>;
@@ -33,7 +34,7 @@ function Discover(){
                 setUsersState(userComponents);
             })
             .catch(err => console.log(err))
-    }, []);
+    }, [0]);
 
     return (
         <div className="app-content">
